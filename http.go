@@ -1,6 +1,7 @@
 package pokedex
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -15,6 +16,8 @@ type Server struct {
 }
 
 func NewServer(addr string) *Server {
+	pokeapi.BaseUrl = "http://localhost:8888"
+	go pokeapi.MockServer(":8888")
 	return &Server{
 		addr: addr,
 		api:  pokeapi.NewClient(),
@@ -30,10 +33,12 @@ func (s *Server) Run() error {
 
 func (s *Server) handlePokemon() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if res, ok := s.c.fetchRequest(r); ok {
-			w.Write(res)
-			return
-		}
+		/*
+			if res, ok := s.c.fetchRequest(r); ok {
+				w.Write(res)
+				return
+			}
+		*/
 		id, err := strconv.Atoi(mux.Vars(r)["id"])
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusBadRequest)
@@ -44,7 +49,7 @@ func (s *Server) handlePokemon() func(http.ResponseWriter, *http.Request) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		res := []byte(p.Name)
+		res, _ := json.Marshal(Pokemon{ID: p.ID, Name: p.Name})
 		go s.c.saveResponse(r, res)
 		w.Write(res)
 	}

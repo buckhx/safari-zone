@@ -7,6 +7,8 @@ import (
 )
 
 func TestFetchPokemon(t *testing.T) {
+	pokeapi.BaseUrl = "http://localhost:8888"
+	go pokeapi.MockServer(":8888")
 	tests := []struct {
 		id   int
 		name string
