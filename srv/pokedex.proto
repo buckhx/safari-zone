@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package srv;
+
+service Pokedex {
+	rpc GetPokemon (PokemonQuery) returns (Pokemon) {}
+}
+
+message PokemonQuery {
+	int32 ID = 1;
+}
+
+message Pokemon {
+	int32 ID = 1;
+	string Name = 2;
+}

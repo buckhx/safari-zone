@@ -7,9 +7,11 @@ import (
 	"github.com/boltdb/bolt"
 )
 
-const CachePath = ".pokedex.cache"
-
-var requestBucket = []byte("request")
+var (
+	CachePath = ".pokedex.cache"
+	httpBkt   = []byte("http")
+	grpcBkt   = []byte("grpc")
+)
 
 type cache struct {
 	db *bolt.DB
@@ -21,7 +23,8 @@ func newCache() (c *cache) {
 		panic(err)
 	}
 	db.Update(func(tx *bolt.Tx) error {
-		tx.CreateBucketIfNotExists(requestBucket)
+		tx.CreateBucketIfNotExists(httpBkt)
+		tx.CreateBucketIfNotExists(grpcBkt)
 		return nil
 	})
 	return &cache{
@@ -47,7 +50,7 @@ func (c *cache) set(bkt, key, val []byte) {
 // caches based on method + url. not on body
 func (c *cache) fetchRequest(r *http.Request) (res []byte, ok bool) {
 	k := []byte(fmt.Sprint(r.Method, r.URL))
-	res = c.get(requestBucket, k)
+	res = c.get(httpBkt, k)
 	if len(res) != 0 {
 		ok = true
 	}
@@ -57,5 +60,5 @@ func (c *cache) fetchRequest(r *http.Request) (res []byte, ok bool) {
 // caches based on method + url. not on body
 func (c *cache) saveResponse(r *http.Request, resp []byte) {
 	k := []byte(fmt.Sprint(r.Method, r.URL))
-	c.set(requestBucket, k, resp)
+	c.set(httpBkt, k, resp)
 }

@@ -4,21 +4,129 @@
 	"package": [
 		{
 			"checksumSHA1": "bRwiD4+8sJVxSqrgreDviq45qKQ=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/boltdb/bolt",
 			"path": "github.com/boltdb/bolt",
 			"revision": "d97499360d1ecebc492ea66c7447ea948f417620",
 			"revisionTime": "2016-04-24T20:11:19Z"
 		},
 		{
+			"checksumSHA1": "kVJ5YScYaDWw6iotbpZwQJ6xCGM=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/golang/protobuf/proto",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "0c1f6d65b5a189c2250d10e71a5506f06f9fa0a0",
+			"revisionTime": "2016-06-14T22:31:40Z"
+		},
+		{
 			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gorilla/context",
 			"path": "github.com/gorilla/context",
 			"revision": "1ea25387ff6f684839d82767c1733ff4d4d15d0a",
 			"revisionTime": "2016-02-26T21:46:23Z"
 		},
 		{
 			"checksumSHA1": "xF+WqeL9eAlbUkiO2bLghMQzO4k=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gorilla/mux",
 			"path": "github.com/gorilla/mux",
 			"revision": "0eeaf8392f5b04950925b8a69fe70f110fa7cbfc",
 			"revisionTime": "2016-03-17T21:34:30Z"
+		},
+		{
+			"checksumSHA1": "9QKY4bQlbQ/VZZFP8/1WtH4b0mA=",
+			"origin": "github.com/buckhx/pokedex/vendor/golang.org/x/net/context",
+			"path": "golang.org/x/net/context",
+			"revision": "3e8a7b0329d536af18e227bb21b6da4d1dbbe180",
+			"revisionTime": "2016-03-29T01:55:07Z"
+		},
+		{
+			"checksumSHA1": "ClIslOd+ahFw742wZTJW0XpSLLQ=",
+			"origin": "github.com/buckhx/pokedex/vendor/golang.org/x/net/http2",
+			"path": "golang.org/x/net/http2",
+			"revision": "3e8a7b0329d536af18e227bb21b6da4d1dbbe180",
+			"revisionTime": "2016-03-29T01:55:07Z"
+		},
+		{
+			"checksumSHA1": "VYl3cuReuGeFp9vb1cm8x87qdlU=",
+			"origin": "github.com/buckhx/pokedex/vendor/golang.org/x/net/http2/hpack",
+			"path": "golang.org/x/net/http2/hpack",
+			"revision": "3e8a7b0329d536af18e227bb21b6da4d1dbbe180",
+			"revisionTime": "2016-03-29T01:55:07Z"
+		},
+		{
+			"checksumSHA1": "/k7k6eJDkxXx6K9Zpo/OwNm58XM=",
+			"origin": "github.com/buckhx/pokedex/vendor/golang.org/x/net/internal/timeseries",
+			"path": "golang.org/x/net/internal/timeseries",
+			"revision": "3e8a7b0329d536af18e227bb21b6da4d1dbbe180",
+			"revisionTime": "2016-03-29T01:55:07Z"
+		},
+		{
+			"checksumSHA1": "dZJWvQmmWOwDkGPxJqoE8rN005w=",
+			"origin": "github.com/buckhx/pokedex/vendor/golang.org/x/net/trace",
+			"path": "golang.org/x/net/trace",
+			"revision": "3e8a7b0329d536af18e227bb21b6da4d1dbbe180",
+			"revisionTime": "2016-03-29T01:55:07Z"
+		},
+		{
+			"checksumSHA1": "BUjt26m9GKSiGLzF+R6sMyHAv/k=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc",
+			"path": "google.golang.org/grpc",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "08icuA15HRkdYCt6H+Cs90RPQsY=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/codes",
+			"path": "google.golang.org/grpc/codes",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "Q0KprGWt/NyyTRbuoZzYDN/QhRw=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/credentials",
+			"path": "google.golang.org/grpc/credentials",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "3Lt5hNAG8qJAYSsNghR5uA1zQns=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/grpclog",
+			"path": "google.golang.org/grpc/grpclog",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "T3Q0p8kzvXFnRkMaK/G8mCv6mc0=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/internal",
+			"path": "google.golang.org/grpc/internal",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "IlzBp7dylW8F4D7eINj8xHt/jMk=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/metadata",
+			"path": "google.golang.org/grpc/metadata",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "4GSUFhOQ0kdFlBH4D5OTeKy78z0=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/naming",
+			"path": "google.golang.org/grpc/naming",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "3RRoLeH6X2//7tVClOVzxW2bY+E=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/peer",
+			"path": "google.golang.org/grpc/peer",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
+		},
+		{
+			"checksumSHA1": "MhC4FXm/VNmBQoVvlZrBV85rRrY=",
+			"origin": "github.com/buckhx/pokedex/vendor/google.golang.org/grpc/transport",
+			"path": "google.golang.org/grpc/transport",
+			"revision": "0eb7c5dcd059d77bde1eb5bc7d953940170d0d18",
+			"revisionTime": "2016-06-24T20:21:16Z"
 		}
 	],
 	"rootPath": "github.com/buckhx/pokedex"

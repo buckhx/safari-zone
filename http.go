@@ -16,8 +16,6 @@ type Server struct {
 }
 
 func NewServer(addr string) *Server {
-	pokeapi.BaseUrl = "http://localhost:8888"
-	go pokeapi.MockServer(":8888")
 	return &Server{
 		addr: addr,
 		api:  pokeapi.NewClient(),
@@ -53,4 +51,9 @@ func (s *Server) handlePokemon() func(http.ResponseWriter, *http.Request) {
 		go s.c.saveResponse(r, res)
 		w.Write(res)
 	}
+}
+
+type Pokemon struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
 }
