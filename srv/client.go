@@ -1,9 +1,12 @@
 package srv
 
-import "google.golang.org/grpc"
+import (
+	"github.com/buckhx/pokedex/pbf"
+	"google.golang.org/grpc"
+)
 
 type Client struct {
-	PokedexClient
+	pbf.PokedexClient
 	conn *grpc.ClientConn
 }
 
@@ -13,7 +16,7 @@ func NewClient(addr string) (c *Client, err error) {
 		return
 	}
 	c = &Client{
-		NewPokedexClient(conn),
+		pbf.NewPokedexClient(conn),
 		conn,
 	}
 	return

@@ -3,6 +3,7 @@ package pokedex
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/golang/protobuf/proto"
@@ -19,7 +20,7 @@ type Cache struct {
 }
 
 func NewCache() (c *Cache) {
-	db, err := bolt.Open(CachePath, 0600, nil)
+	db, err := bolt.Open(CachePath, 0600, &bolt.Options{Timeout: 5 * time.Second})
 	if err != nil {
 		panic(err)
 	}

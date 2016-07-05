@@ -1,4 +1,4 @@
-package pokedex
+package http_api
 
 import (
 	"encoding/json"
@@ -12,14 +12,14 @@ import (
 type Server struct {
 	addr string
 	api  *pokeapi.Client
-	c    *Cache
+	//c    *pokedex.Cache
 }
 
 func NewServer(addr string) *Server {
 	return &Server{
 		addr: addr,
 		api:  pokeapi.NewClient(),
-		c:    NewCache(),
+		//c:    pokedex.NewCache(),
 	}
 }
 
@@ -48,7 +48,7 @@ func (s *Server) handlePokemon() func(http.ResponseWriter, *http.Request) {
 			return
 		}
 		res, _ := json.Marshal(Pokemon{ID: p.ID, Name: p.Name})
-		go s.c.SaveResponse(r, res)
+		//go s.c.SaveResponse(r, res)
 		w.Write(res)
 	}
 }

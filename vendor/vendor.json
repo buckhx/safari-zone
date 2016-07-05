@@ -10,11 +10,60 @@
 			"revisionTime": "2016-04-24T20:11:19Z"
 		},
 		{
+			"checksumSHA1": "SdjsfkkD+qTCV2AbwsK8IK52D08=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gengo/grpc-gateway/runtime",
+			"path": "github.com/gengo/grpc-gateway/runtime",
+			"revision": "04d03d2c0176f9060cc3da4945a71abc759648bc",
+			"revisionTime": "2016-06-15T08:08:17Z"
+		},
+		{
+			"checksumSHA1": "iPQFpb7f50VJBSqfJRwWExpL+DM=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gengo/grpc-gateway/runtime/internal",
+			"path": "github.com/gengo/grpc-gateway/runtime/internal",
+			"revision": "04d03d2c0176f9060cc3da4945a71abc759648bc",
+			"revisionTime": "2016-06-15T08:08:17Z"
+		},
+		{
+			"checksumSHA1": "L4R+iGNtgPwmtLD7A0oKI5LAmcY=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gengo/grpc-gateway/third_party/googleapis/google/api",
+			"path": "github.com/gengo/grpc-gateway/third_party/googleapis/google/api",
+			"revision": "04d03d2c0176f9060cc3da4945a71abc759648bc",
+			"revisionTime": "2016-06-15T08:08:17Z"
+		},
+		{
+			"checksumSHA1": "B3ebg4a6QHAw3qO9oCnny0E4gQs=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gengo/grpc-gateway/utilities",
+			"path": "github.com/gengo/grpc-gateway/utilities",
+			"revision": "04d03d2c0176f9060cc3da4945a71abc759648bc",
+			"revisionTime": "2016-06-15T08:08:17Z"
+		},
+		{
+			"checksumSHA1": "iZVulPMFFGC70xeLZJafiKzTn18=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/gogo/protobuf/proto",
+			"path": "github.com/gogo/protobuf/proto",
+			"revision": "2752d97bbd91927dd1c43296dbf8700e50e2708c",
+			"revisionTime": "2016-06-17T09:13:52Z"
+		},
+		{
+			"checksumSHA1": "qioByTCmsc3Eov25SfKZiR2FWVc=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/golang/protobuf/jsonpb",
+			"path": "github.com/golang/protobuf/jsonpb",
+			"revision": "3852dcfda249c2097355a6aabb199a28d97b30df",
+			"revisionTime": "2016-06-29T21:10:53Z"
+		},
+		{
 			"checksumSHA1": "kVJ5YScYaDWw6iotbpZwQJ6xCGM=",
 			"origin": "github.com/buckhx/pokedex/vendor/github.com/golang/protobuf/proto",
 			"path": "github.com/golang/protobuf/proto",
 			"revision": "0c1f6d65b5a189c2250d10e71a5506f06f9fa0a0",
 			"revisionTime": "2016-06-14T22:31:40Z"
+		},
+		{
+			"checksumSHA1": "aydaSdA6HOlRMLMA6f2vcGyBmVA=",
+			"origin": "github.com/buckhx/pokedex/vendor/github.com/golang/protobuf/protoc-gen-go/descriptor",
+			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
+			"revision": "3852dcfda249c2097355a6aabb199a28d97b30df",
+			"revisionTime": "2016-06-29T21:10:53Z"
 		},
 		{
 			"checksumSHA1": "iIUYZyoanCQQTUaWsu8b+iOSPt4=",

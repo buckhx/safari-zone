@@ -10,7 +10,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/buckhx/pokedex"
+	"github.com/buckhx/pokedex/api/http"
+	"github.com/buckhx/pokedex/pbf"
 	"github.com/buckhx/pokedex/srv"
 
 	"golang.org/x/net/context"
@@ -22,8 +23,10 @@ const (
 )
 
 func setup() error {
-	go pokedex.NewServer(httpPort).Run()
-	go srv.New(grpcPort).Run()
+	fmt.Println("Setting up...")
+	go http_api.NewServer(httpPort).Run()
+	go srv.New(grpcPort).Listen()
+	fmt.Println("Sleeping...")
 	time.Sleep(1 * time.Second)
 	return nil
 }
@@ -39,7 +42,7 @@ func BenchmarkGrpc(b *testing.B) {
 	b.RunParallel(func(pb *testing.PB) {
 		var nm string
 		for pb.Next() {
-			r, err := c.GetPokemon(context.Background(), &srv.PokemonQuery{ID: 1})
+			r, err := c.GetPokemon(context.Background(), &pbf.Pokemon_Query{ID: 1})
 			if err != nil {
 				log.Fatalf("could not greet: %v", err)
 			}
@@ -63,7 +66,7 @@ func BenchmarkHttp(b *testing.B) {
 			if err != nil {
 				log.Fatal(err)
 			}
-			var p pokedex.Pokemon
+			var p pbf.Pokemon
 			if err := json.Unmarshal(b, &p); err != nil {
 				log.Fatal(err)
 			}

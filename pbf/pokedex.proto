@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package pbf;
+
+import "google/api/annotations.proto";
+
+service Pokedex {
+	rpc GetPokemon (Pokemon.Query) returns (Pokemon) {
+		option (google.api.http) = {
+			get: "/v1/pokemon/{ID}"
+		};
+	}
+}
+
+message Pokemon {
+	int32 ID = 1;
+	string Name = 2;
+	message Query {
+		int32 ID = 1;
+	};
+}

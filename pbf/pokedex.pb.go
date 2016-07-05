@@ -3,20 +3,20 @@
 // DO NOT EDIT!
 
 /*
-Package srv is a generated protocol buffer package.
+Package pbf is a generated protocol buffer package.
 
 It is generated from these files:
 	pokedex.proto
 
 It has these top-level messages:
-	PokemonQuery
 	Pokemon
 */
-package srv
+package pbf
 
 import proto "github.com/golang/protobuf/proto"
 import fmt "fmt"
 import math "math"
+import _ "github.com/gengo/grpc-gateway/third_party/googleapis/google/api"
 
 import (
 	context "golang.org/x/net/context"
@@ -34,15 +34,6 @@ var _ = math.Inf
 // proto package needs to be updated.
 const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
-type PokemonQuery struct {
-	ID int32 `protobuf:"varint,1,opt,name=ID,json=iD" json:"ID,omitempty"`
-}
-
-func (m *PokemonQuery) Reset()                    { *m = PokemonQuery{} }
-func (m *PokemonQuery) String() string            { return proto.CompactTextString(m) }
-func (*PokemonQuery) ProtoMessage()               {}
-func (*PokemonQuery) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
-
 type Pokemon struct {
 	ID   int32  `protobuf:"varint,1,opt,name=ID,json=iD" json:"ID,omitempty"`
 	Name string `protobuf:"bytes,2,opt,name=Name,json=name" json:"Name,omitempty"`
@@ -51,11 +42,20 @@ type Pokemon struct {
 func (m *Pokemon) Reset()                    { *m = Pokemon{} }
 func (m *Pokemon) String() string            { return proto.CompactTextString(m) }
 func (*Pokemon) ProtoMessage()               {}
-func (*Pokemon) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{1} }
+func (*Pokemon) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+
+type Pokemon_Query struct {
+	ID int32 `protobuf:"varint,1,opt,name=ID,json=iD" json:"ID,omitempty"`
+}
+
+func (m *Pokemon_Query) Reset()                    { *m = Pokemon_Query{} }
+func (m *Pokemon_Query) String() string            { return proto.CompactTextString(m) }
+func (*Pokemon_Query) ProtoMessage()               {}
+func (*Pokemon_Query) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0, 0} }
 
 func init() {
-	proto.RegisterType((*PokemonQuery)(nil), "srv.PokemonQuery")
-	proto.RegisterType((*Pokemon)(nil), "srv.Pokemon")
+	proto.RegisterType((*Pokemon)(nil), "pbf.Pokemon")
+	proto.RegisterType((*Pokemon_Query)(nil), "pbf.Pokemon.Query")
 }
 
 // Reference imports to suppress errors if they are not otherwise used.
@@ -69,7 +69,7 @@ const _ = grpc.SupportPackageIsVersion3
 // Client API for Pokedex service
 
 type PokedexClient interface {
-	GetPokemon(ctx context.Context, in *PokemonQuery, opts ...grpc.CallOption) (*Pokemon, error)
+	GetPokemon(ctx context.Context, in *Pokemon_Query, opts ...grpc.CallOption) (*Pokemon, error)
 }
 
 type pokedexClient struct {
@@ -80,9 +80,9 @@ func NewPokedexClient(cc *grpc.ClientConn) PokedexClient {
 	return &pokedexClient{cc}
 }
 
-func (c *pokedexClient) GetPokemon(ctx context.Context, in *PokemonQuery, opts ...grpc.CallOption) (*Pokemon, error) {
+func (c *pokedexClient) GetPokemon(ctx context.Context, in *Pokemon_Query, opts ...grpc.CallOption) (*Pokemon, error) {
 	out := new(Pokemon)
-	err := grpc.Invoke(ctx, "/srv.Pokedex/GetPokemon", in, out, c.cc, opts...)
+	err := grpc.Invoke(ctx, "/pbf.Pokedex/GetPokemon", in, out, c.cc, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -92,7 +92,7 @@ func (c *pokedexClient) GetPokemon(ctx context.Context, in *PokemonQuery, opts .
 // Server API for Pokedex service
 
 type PokedexServer interface {
-	GetPokemon(context.Context, *PokemonQuery) (*Pokemon, error)
+	GetPokemon(context.Context, *Pokemon_Query) (*Pokemon, error)
 }
 
 func RegisterPokedexServer(s *grpc.Server, srv PokedexServer) {
@@ -100,7 +100,7 @@ func RegisterPokedexServer(s *grpc.Server, srv PokedexServer) {
 }
 
 func _Pokedex_GetPokemon_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PokemonQuery)
+	in := new(Pokemon_Query)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -109,16 +109,16 @@ func _Pokedex_GetPokemon_Handler(srv interface{}, ctx context.Context, dec func(
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: "/srv.Pokedex/GetPokemon",
+		FullMethod: "/pbf.Pokedex/GetPokemon",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(PokedexServer).GetPokemon(ctx, req.(*PokemonQuery))
+		return srv.(PokedexServer).GetPokemon(ctx, req.(*Pokemon_Query))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
 var _Pokedex_serviceDesc = grpc.ServiceDesc{
-	ServiceName: "srv.Pokedex",
+	ServiceName: "pbf.Pokedex",
 	HandlerType: (*PokedexServer)(nil),
 	Methods: []grpc.MethodDesc{
 		{
@@ -133,14 +133,17 @@ var _Pokedex_serviceDesc = grpc.ServiceDesc{
 func init() { proto.RegisterFile("pokedex.proto", fileDescriptor0) }
 
 var fileDescriptor0 = []byte{
-	// 134 bytes of a gzipped FileDescriptorProto
+	// 182 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0xe2, 0xe2, 0x2d, 0xc8, 0xcf, 0x4e,
-	0x4d, 0x49, 0xad, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2e, 0x2e, 0x2a, 0x53, 0x92,
-	0xe3, 0xe2, 0x09, 0x00, 0x8a, 0xe6, 0xe6, 0xe7, 0x05, 0x96, 0xa6, 0x16, 0x55, 0x0a, 0xf1, 0x71,
-	0x31, 0x79, 0xba, 0x48, 0x30, 0x2a, 0x30, 0x6a, 0xb0, 0x06, 0x31, 0x65, 0xba, 0x28, 0xe9, 0x72,
-	0xb1, 0x43, 0xe5, 0xd1, 0xa5, 0x84, 0x84, 0xb8, 0x58, 0xfc, 0x12, 0x73, 0x53, 0x25, 0x98, 0x80,
-	0x22, 0x9c, 0x41, 0x2c, 0x79, 0x40, 0xb6, 0x91, 0x15, 0x44, 0x39, 0xd0, 0x12, 0x21, 0x7d, 0x2e,
-	0x2e, 0xf7, 0xd4, 0x12, 0x98, 0x66, 0x41, 0x3d, 0xa0, 0x6d, 0x7a, 0xc8, 0x56, 0x49, 0xf1, 0x20,
-	0x0b, 0x29, 0x31, 0x24, 0xb1, 0x81, 0x9d, 0x65, 0x0c, 0x08, 0x00, 0x00, 0xff, 0xff, 0x7b, 0xba,
-	0x03, 0x18, 0xa7, 0x00, 0x00, 0x00,
+	0x4d, 0x49, 0xad, 0xd0, 0x2b, 0x28, 0xca, 0x2f, 0xc9, 0x17, 0x62, 0x2e, 0x48, 0x4a, 0x93, 0x92,
+	0x49, 0xcf, 0xcf, 0x4f, 0xcf, 0x49, 0xd5, 0x4f, 0x2c, 0xc8, 0xd4, 0x4f, 0xcc, 0xcb, 0xcb, 0x2f,
+	0x49, 0x2c, 0xc9, 0xcc, 0xcf, 0x2b, 0x86, 0x28, 0x51, 0x72, 0xe3, 0x62, 0x0f, 0x00, 0xea, 0xc9,
+	0xcd, 0xcf, 0x13, 0xe2, 0xe3, 0x62, 0xf2, 0x74, 0x91, 0x60, 0x54, 0x60, 0xd4, 0x60, 0x0d, 0x62,
+	0xca, 0x74, 0x11, 0x12, 0xe2, 0x62, 0xf1, 0x4b, 0xcc, 0x4d, 0x95, 0x60, 0x02, 0x8a, 0x70, 0x06,
+	0xb1, 0xe4, 0x01, 0xd9, 0x52, 0xe2, 0x5c, 0xac, 0x81, 0xa5, 0xa9, 0x45, 0x95, 0xe8, 0x8a, 0x8d,
+	0x82, 0x21, 0xe6, 0x00, 0xed, 0x16, 0xf2, 0xe0, 0xe2, 0x72, 0x4f, 0x2d, 0x81, 0x99, 0x2a, 0xa4,
+	0x07, 0x74, 0x84, 0x1e, 0x94, 0xa7, 0x07, 0xd6, 0x2c, 0xc5, 0x83, 0x2c, 0xa6, 0x24, 0xd1, 0x74,
+	0xf9, 0xc9, 0x64, 0x26, 0x21, 0x21, 0x01, 0xfd, 0x32, 0x43, 0xfd, 0x02, 0x88, 0xa0, 0x7e, 0xb5,
+	0xa7, 0x4b, 0x6d, 0x12, 0x1b, 0xd8, 0x8d, 0xc6, 0x80, 0x00, 0x00, 0x00, 0xff, 0xff, 0x80, 0x46,
+	0xda, 0x2a, 0xd7, 0x00, 0x00, 0x00,
 }

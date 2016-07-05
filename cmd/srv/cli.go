@@ -8,12 +8,14 @@ import (
 
 const (
 	port = ":50051"
+	gw   = ":8080"
 )
 
 func main() {
 	//pokeapi.BaseUrl = "http://localhost:8888"
 	//go pokeapi.MockServer(":8888")
 	s := srv.New(port)
-	err := s.Run()
+	go s.Listen()
+	err := s.Gateway(gw)
 	log.Fatal(err)
 }

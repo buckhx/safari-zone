@@ -10,6 +10,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/buckhx/pokedex/pbf"
 	"github.com/buckhx/pokedex/srv"
 )
 
@@ -32,7 +33,7 @@ func main() {
 			log.Printf("Invalid Pokemon ID %q", in)
 			continue
 		}
-		r, err := c.GetPokemon(context.Background(), &srv.PokemonQuery{ID: int32(id)})
+		r, err := c.GetPokemon(context.Background(), &pbf.Pokemon_Query{ID: int32(id)})
 		if err != nil {
 			log.Printf("Error getting: %v", err)
 			continue
