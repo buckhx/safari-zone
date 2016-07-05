@@ -17,7 +17,7 @@ pbf:
 	protoc -I /usr/local/include -I ./pbf/ \
 		-I ${GOPATH}/src \
 		-I ${GOPATH}/src/github.com/gengo/grpc-gateway/third_party/googleapis \
-		--go_out=google/api/annotations.proto=github.com/gengo/grpc-gateway/third_party/googleapis/google/api,plugins=grpc:./pbf/ \
+		--gogoslick_out=google/api/annotations.proto=github.com/gengo/grpc-gateway/third_party/googleapis/google/api,plugins=grpc:./pbf/ \
 		./pbf/*.proto
 	protoc -I /usr/local/include -I ./pbf/ \
 		-I ${GOPATH}/src \
