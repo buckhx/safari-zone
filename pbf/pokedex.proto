@@ -139,10 +139,6 @@ message Event {
 	Timestamp time = 4;
 }
 
-message PokemonList {
-	repeated Pokemon pokemon = 1;
-}
-
 // Response is a generic message w/ Success, Message & Code
 message Response {
 	bool ok = 1;
