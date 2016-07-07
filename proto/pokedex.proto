@@ -21,18 +21,20 @@ service Pokedex {
 
 // Pokemon message is info about a pokemon
 message Pokemon {
-	// id is the unique identifier for this individual pokemon
+	// Uid is the unique identifier for this individual pokemon
 	string uid = 1;
+	// NickName is the name this pokemon has been given by it's trainer
+	string nick_name = 2;
 	// Name is the English name of the pokemon
-	string name = 2;
+	string name = 3;
 	// Number is the canonical pokemon identifier
-	int32 number = 3;
+	int32 number = 4 ;//[(gogoproto.casttype) = "int"];
 	// Type is the type of this pokemon
-	repeated Type type = 4;
+	repeated Type type = 5;
 	// CatchRate is chance of catching on a scale of 1-255
-	int32 catch_rate = 5;
+	int32 catch_rate = 6 ;//[(gogoproto.casttype) = "int"];
 	// Speed is how fast the pokemon is on a scale 1-100
-	int32 speed = 6;
+	int32 speed = 7 ;//[(gogoproto.casttype) = "int"];
 
 	// Pokemon_Type is the canonical type of a pokemon
 	enum Type {

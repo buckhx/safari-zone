@@ -8,21 +8,24 @@ import (
 	"os"
 	"strconv"
 
+	"google.golang.org/grpc"
+
 	"github.com/buckhx/safari-zone/proto/pbf"
 
 	"golang.org/x/net/context"
 )
 
 const (
-	address = "localhost:50051"
+	addr = "localhost:50051"
 )
 
 func main() {
-	c, err := srv.NewClient(address)
+	conn, err := grpc.Dial(addr, grpc.WithInsecure())
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
-	defer c.Close()
+	defer conn.Close()
+	c := pbf.NewPokedexClient(conn)
 	scanner := bufio.NewScanner(os.Stdin)
 	log.Printf("Waiting for input...")
 	for scanner.Scan() {

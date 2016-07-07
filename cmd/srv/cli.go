@@ -13,12 +13,15 @@ const (
 )
 
 func main() {
-	s := pokedex.New(rpcAddr)
+	s, err := pokedex.NewService(rpcAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	go func() {
 		err := s.Listen()
 		log.Println(err)
 	}()
 	gw := srv.NewGateway(gwAddr, s)
-	err := gw.Serve()
+	err = gw.Serve()
 	log.Fatal(err)
 }
