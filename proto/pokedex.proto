@@ -1,0 +1,64 @@
+syntax = "proto3";
+
+package buckhx.pokedex;
+option go_package = "pbf";
+// package is gw for Gateway and set to pbf on cli for pbf gen
+
+import "google/api/annotations.proto";
+
+// Pokedex service catalogs pokemon
+service Pokedex {
+
+	// GetPokemon method retrieves info about the pokemon at the given number
+	//
+	// Any other supplied attributes will be ignored
+	rpc GetPokemon (Pokemon) returns (Pokemon.Collection) {
+		option (google.api.http) = {
+			get: "/pokemon/{number}"
+		};
+	}
+}
+
+// Pokemon message is info about a pokemon
+message Pokemon {
+	// id is the unique identifier for this individual pokemon
+	string uid = 1;
+	// Name is the English name of the pokemon
+	string name = 2;
+	// Number is the canonical pokemon identifier
+	int32 number = 3;
+	// Type is the type of this pokemon
+	repeated Type type = 4;
+	// CatchRate is chance of catching on a scale of 1-255
+	int32 catch_rate = 5;
+	// Speed is how fast the pokemon is on a scale 1-100
+	int32 speed = 6;
+
+	// Pokemon_Type is the canonical type of a pokemon
+	enum Type {
+		UNKNOWN = 0;
+		NORMAL = 1;
+		FIGHTING = 2;
+		FLYING = 3;
+		POISON = 4;
+		GROUND = 5;
+		ROCK = 6;
+		BUG = 7;
+		GHOST = 8;
+		STEEL = 9;
+		FIRE = 10;
+		WATER = 11;
+		GRASS = 12;
+		ELECTRIC = 13;
+		PSYCHIC = 14;
+		ICE = 15;
+		DRAGON = 16;
+		DARK = 17;
+		FAIRY = 18;
+	}
+
+	// Pokemon_Collection is self evident
+	message Collection {
+		repeated Pokemon pokemon = 1;
+	}
+}

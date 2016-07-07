@@ -1,0 +1,50 @@
+syntax = "proto3";
+
+package buckhx.pokedex;
+option go_package = "pbf";
+
+import "google/api/annotations.proto";
+import "pokedex.proto";
+import "registry.proto";
+
+// Safari is a service that trainers join and catch pokemon on
+service Safari {
+	// Encounter might add a pokemon to the event
+	//
+	// A pokemon will be added to the event and timestmap set if one is encountered
+	rpc Encounter (Event) returns (Event) {
+		option (google.api.http) = {
+			get: "/trainer/{trainer.uid}/region/{region.opt_code}"
+		};
+	}
+
+	// Catch will attempt to catch the pokemon
+	//
+	// If caught, this pokemon will be deposited into the Trainer's PC
+	rpc Catch (Event) returns (Response) {
+		option (google.api.http) = {
+			post: "/trainer/{trainer.uid}/pokemon/{pokemon.uid}"
+		};
+	}
+}
+
+message Event {
+	Trainer trainer = 1;
+	Pokemon pokemon = 2;
+	Region region = 3;
+	Timestamp time = 4;
+}
+
+message Region {
+	Code code = 1;
+	int32 opt_code = 15;
+	enum Code {
+		KANTO = 0;
+		JOHTO = 1;
+		HOENN = 2;
+		SINNOH = 3;
+		UNOVA = 4;
+		KALOS = 5;
+		ALOLA = 6;
+	}
+}

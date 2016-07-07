@@ -1,7 +1,7 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "pokedex.proto",
+    "title": "safari.proto",
     "version": "version not set"
   },
   "schemes": [
@@ -15,61 +15,6 @@
     "application/json"
   ],
   "paths": {
-    "/pokemon/{number}": {
-      "get": {
-        "summary": "GetPokemon method retrieves info about the pokemon at the given number",
-        "description": "Any other supplied attributes will be ignored",
-        "operationId": "GetPokemon",
-        "responses": {
-          "200": {
-            "description": "Description",
-            "schema": {
-              "$ref": "#/definitions/PokemonCollection"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "number",
-            "in": "path",
-            "required": true,
-            "type": "integer",
-            "format": "int32"
-          }
-        ],
-        "tags": [
-          "Pokedex"
-        ]
-      }
-    },
-    "/trainer": {
-      "post": {
-        "summary": "Create makes a new trainer",
-        "description": "Trainer name, password, age \u0026 gender are required. \nAny other supplied fields will be ignored",
-        "operationId": "Create",
-        "responses": {
-          "200": {
-            "description": "Description",
-            "schema": {
-              "$ref": "#/definitions/pbfResponse"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "required": true,
-            "schema": {
-              "$ref": "#/definitions/pbfTrainer"
-            }
-          }
-        ],
-        "tags": [
-          "Gameboy"
-        ]
-      }
-    },
     "/trainer/{trainer.uid}/pokemon/{pokemon.uid}": {
       "post": {
         "summary": "Catch will attempt to catch the pokemon",
@@ -100,7 +45,7 @@
           }
         ],
         "tags": [
-          "Gameboy"
+          "Safari"
         ]
       }
     },
@@ -134,61 +79,7 @@
           }
         ],
         "tags": [
-          "Gameboy"
-        ]
-      }
-    },
-    "/trainer/{uid}": {
-      "get": {
-        "summary": "Get fetchs a trainer",
-        "description": "The populated fields will depend on the auth scope of the token",
-        "operationId": "Get",
-        "responses": {
-          "200": {
-            "description": "Description",
-            "schema": {
-              "$ref": "#/definitions/pbfTrainer"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "uid",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "string"
-          }
-        ],
-        "tags": [
-          "Gameboy"
-        ]
-      }
-    },
-    "/trainer/{uid}/auth": {
-      "get": {
-        "summary": "Authenicate a user to retrieve a an access token to authorize requests",
-        "description": "HTTPS required w/ HTTP basic access authentication via a header\nAuthorization: Basic BASE64({user:pass})",
-        "operationId": "Authenticate",
-        "responses": {
-          "200": {
-            "description": "Description",
-            "schema": {
-              "$ref": "#/definitions/pbfToken"
-            }
-          }
-        },
-        "parameters": [
-          {
-            "name": "uid",
-            "in": "path",
-            "required": true,
-            "type": "string",
-            "format": "string"
-          }
-        ],
-        "tags": [
-          "Gameboy"
+          "Safari"
         ]
       }
     }
@@ -203,7 +94,8 @@
             "$ref": "#/definitions/pbfPokemon"
           }
         }
-      }
+      },
+      "title": "Pokemon_Collection is self evident"
     },
     "RegionCode": {
       "type": "string",
@@ -340,25 +232,6 @@
           "format": "int64"
         }
       }
-    },
-    "pbfToken": {
-      "type": "object",
-      "properties": {
-        "token": {
-          "type": "string",
-          "format": "byte"
-        },
-        "type": {
-          "$ref": "#/definitions/pbfTokenType"
-        }
-      }
-    },
-    "pbfTokenType": {
-      "type": "string",
-      "enum": [
-        "ACCESS"
-      ],
-      "default": "ACCESS"
     },
     "pbfTrainer": {
       "type": "object",

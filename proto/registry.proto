@@ -1,0 +1,74 @@
+syntax = "proto3";
+
+package buckhx.pokedex;
+option go_package = "pbf";
+
+import "google/api/annotations.proto";
+import "pokedex.proto";
+
+// Registry is a service to register trainers
+service Registry {
+	// Register makes a creates a new trainer in the safari
+	//
+	// Trainer name, password, age & gender are required. 
+	// Any other supplied fields will be ignored
+	rpc Register (Trainer) returns (Response) {
+		option (google.api.http) = {
+			post: "/trainer"
+			body: "*"
+		};
+	}
+
+	// Get fetchs a trainer
+	//
+	// The populated fields will depend on the auth scope of the token
+	rpc Get (Trainer) returns (Trainer) {
+		option (google.api.http) = {
+			get: "/trainer/{uid}"
+		};
+	}
+
+	// Enter authenticates a user to retrieve a an access token to authorize requests for a safari
+	//
+	// HTTPS required w/ HTTP basic access authentication via a header
+	// Authorization: Basic BASE64({user:pass})
+	rpc Enter (Trainer) returns (Token) {
+		option (google.api.http) = {
+			get: "/trainer/{uid}/auth"
+		};
+	}
+}
+
+message Trainer {
+	string uid = 1;
+	string name = 2;
+	string password = 3;
+	int32 age = 4;
+	Gender gender = 5;
+	Timestamp start = 6;
+	Pokemon.Collection pc = 7;
+	
+	enum Gender {
+		BOY = 0;
+		GIRL = 1;
+	}
+}
+
+// Response is a generic message w/ Success, Message & Code
+message Response {
+	bool ok = 1;
+	string msg = 2;
+	int32 code = 3;
+}
+
+message Token {
+	bytes token = 1;
+	Type type = 2;
+	enum Type {
+		ACCESS = 0;
+	}
+}
+
+message Timestamp {
+	int64 unix = 1;
+}
