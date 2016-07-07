@@ -3,19 +3,22 @@ package main
 import (
 	"log"
 
+	"github.com/buckhx/pokedex"
 	"github.com/buckhx/pokedex/srv"
 )
 
 const (
-	port = ":50051"
-	gw   = ":8080"
+	rpcAddr = ":50051"
+	gwAddr  = ":8080"
 )
 
 func main() {
-	//pokeapi.BaseUrl = "http://localhost:8888"
-	//go pokeapi.MockServer(":8888")
-	s := srv.New(port)
-	go s.Listen()
-	err := s.Gateway(gw)
+	s := pokedex.New(rpcAddr)
+	go func() {
+		err := s.Listen()
+		log.Println(err)
+	}()
+	gw := srv.NewGateway(gwAddr, s)
+	err := gw.Serve()
 	log.Fatal(err)
 }

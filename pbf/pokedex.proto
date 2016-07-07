@@ -4,18 +4,174 @@ package pbf;
 
 import "google/api/annotations.proto";
 
+// Pokedex service catalogs pokemon
 service Pokedex {
-	rpc GetPokemon (Pokemon.Query) returns (Pokemon) {
+
+	// GetPokemon method retrieves info about the pokemon at the given number
+	//
+	// Any other supplied attributes will be ignored
+	rpc GetPokemon (Pokemon) returns (Pokemon.Collection) {
 		option (google.api.http) = {
-			get: "/v1/pokemon/{ID}"
+			get: "/pokemon/{number}"
+		};
+	}
+
+	//
+/*
+	rpc RegionInfo (Region) returns (Pokemon) {
+		option (google.api.http) = {
+			get: "/region/{opt_code}"
+		};
+	}
+*/
+}
+
+service Gameboy {
+	// Create makes a new trainer
+	//
+	// Trainer name, password, age & gender are required. 
+	// Any other supplied fields will be ignored
+	rpc Create (Trainer) returns (Response) {
+		option (google.api.http) = {
+			post: "/trainer"
+			body: "*"
+		};
+	}
+
+	// Get fetchs a trainer
+	//
+	// The populated fields will depend on the auth scope of the token
+	rpc Get (Trainer) returns (Trainer) {
+		option (google.api.http) = {
+			get: "/trainer/{uid}"
+		};
+	}
+
+	// Authenicate a user to retrieve a an access token to authorize requests
+	//
+	// HTTPS required w/ HTTP basic access authentication via a header
+	// Authorization: Basic BASE64({user:pass})
+	rpc Authenticate (Trainer) returns (Token) {
+		option (google.api.http) = {
+			get: "/trainer/{uid}/auth"
+		};
+	}
+
+	// Encounter might add a pokemon to the event
+	//
+	// A pokemon will be added to the event and timestmap set if one is encountered
+	rpc Encounter (Event) returns (Event) {
+		option (google.api.http) = {
+			get: "/trainer/{trainer.uid}/region/{region.opt_code}"
+		};
+	}
+
+	// Catch will attempt to catch the pokemon
+	//
+	// If caught, this pokemon will be deposited into the Trainer's PC
+	rpc Catch (Event) returns (Response) {
+		option (google.api.http) = {
+			post: "/trainer/{trainer.uid}/pokemon/{pokemon.uid}"
 		};
 	}
 }
 
+message Trainer {
+	string uid = 1;
+	string name = 2;
+	string password = 3;
+	int32 age = 4;
+	Gender gender = 5;
+	Timestamp start = 6;
+	Pokemon.Collection pc = 7;
+	
+	enum Gender {
+		BOY = 0;
+		GIRL = 1;
+	}
+}
+
+// Pokemon message is info about a pokemon
 message Pokemon {
-	int32 ID = 1;
-	string Name = 2;
-	message Query {
-		int32 ID = 1;
-	};
+	// id is the unique identifier for this individual pokemon
+	string uid = 1;
+	// Name is the English name of the pokemon
+	string name = 2;
+	// Number is the canonical pokemon identifier
+	int32 number = 3;
+	// Type is the type of this pokemon
+	repeated Type type = 4;
+	// CatchRate is chance of catching on a scale of 1-255
+	int32 catch_rate = 5;
+
+	// Pokemon.Type is the canonical type of a pokemon
+	enum Type {
+		UNKNOWN = 0;
+		NORMAL = 1;
+		FIGHTING = 2;
+		FLYING = 3;
+		POISON = 4;
+		GROUND = 5;
+		ROCK = 6;
+		BUG = 7;
+		GHOST = 8;
+		STEEL = 9;
+		FIRE = 10;
+		WATER = 11;
+		GRASS = 12;
+		ELECTRIC = 13;
+		PSYCHIC = 14;
+		ICE = 15;
+		DRAGON = 16;
+		DARK = 17;
+		FAIRY = 18;
+	}
+
+	message Collection {
+		repeated Pokemon pokemon = 1;
+	}
+}
+
+message Event {
+	Trainer trainer = 1;
+	Pokemon pokemon = 2;
+	Region region = 3;
+	Timestamp time = 4;
+}
+
+message PokemonList {
+	repeated Pokemon pokemon = 1;
+}
+
+// Response is a generic message w/ Success, Message & Code
+message Response {
+	bool ok = 1;
+	string msg = 2;
+	int32 code = 3;
+}
+
+message Region {
+	Code code = 1;
+	int32 opt_code = 15;
+	enum Code {
+		KANTO = 0;
+		JOHTO = 1;
+		HOENN = 2;
+		SINNOH = 3;
+		UNOVA = 4;
+		KALOS = 5;
+		ALOLA = 6;
+	}
+}
+
+message Token {
+	bytes token = 1;
+	Type type = 2;
+	enum Type {
+		ACCESS = 0;
+	}
+}
+
+message Timestamp {
+	int64 unix = 1;
 }

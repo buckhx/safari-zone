@@ -33,7 +33,7 @@ func main() {
 			log.Printf("Invalid Pokemon ID %q", in)
 			continue
 		}
-		r, err := c.GetPokemon(context.Background(), &pbf.Pokemon_Query{ID: int32(id)})
+		r, err := c.GetPokemon(context.Background(), &pbf.Pokemon{Number: int32(id)})
 		if err != nil {
 			log.Printf("Error getting: %v", err)
 			continue
