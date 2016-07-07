@@ -5,7 +5,7 @@ import (
 	"net"
 	"net/http"
 
-	"github.com/buckhx/pokedex/pbf"
+	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/gengo/grpc-gateway/runtime"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"

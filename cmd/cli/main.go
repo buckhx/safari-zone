@@ -8,10 +8,9 @@ import (
 	"os"
 	"strconv"
 
-	"golang.org/x/net/context"
+	"github.com/buckhx/safari-zone/proto/pbf"
 
-	"github.com/buckhx/pokedex/pbf"
-	"github.com/buckhx/pokedex/srv"
+	"golang.org/x/net/context"
 )
 
 const (

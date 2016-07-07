@@ -3,8 +3,8 @@ package main
 import (
 	"log"
 
-	"github.com/buckhx/pokedex"
-	"github.com/buckhx/pokedex/srv"
+	"github.com/buckhx/safari-zone/pokedex"
+	"github.com/buckhx/safari-zone/srv"
 )
 
 const (
