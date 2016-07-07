@@ -1,14 +1,15 @@
 syntax = "proto3";
 
-package buckhx.pokedex;
+package buckhx.safari.zone;
 option go_package = "pbf";
 
 import "google/api/annotations.proto";
 import "pokedex.proto";
-import "registry.proto";
+import "entity.proto";
+import "msg.proto";
 
 // Safari is a service that trainers join and catch pokemon on
-service Safari {
+service Zone {
 	// Encounter might add a pokemon to the event
 	//
 	// A pokemon will be added to the event and timestmap set if one is encountered
@@ -21,18 +22,24 @@ service Safari {
 	// Catch will attempt to catch the pokemon
 	//
 	// If caught, this pokemon will be deposited into the Trainer's PC
-	rpc Catch (Event) returns (Response) {
+	rpc Catch (Event) returns (msg.Response) {
 		option (google.api.http) = {
 			post: "/trainer/{trainer.uid}/pokemon/{pokemon.uid}"
 		};
 	}
 }
 
+enum ZoneScope {
+	ZONE_READ = 0;
+	ZONE_WRITE = 1;
+	ZONE_ADMIN = 2;
+}
+
 message Event {
-	Trainer trainer = 1;
-	Pokemon pokemon = 2;
+	entity.Trainer trainer = 1;
+	pokedex.Pokemon pokemon = 2;
 	Region region = 3;
-	Timestamp time = 4;
+	msg.Timestamp time = 4;
 }
 
 message Region {

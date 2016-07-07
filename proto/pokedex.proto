@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package buckhx.pokedex;
+package buckhx.safari.pokedex;
 option go_package = "pbf";
 // package is gw for Gateway and set to pbf on cli for pbf gen
 
@@ -18,6 +18,12 @@ service Pokedex {
 		};
 	}
 }
+
+enum PokedexScope {
+	PDX_READ = 0;
+	PDX_WRITE = 1;
+}
+
 
 // Pokemon message is info about a pokemon
 message Pokemon {

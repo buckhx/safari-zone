@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package buckhx.safari.entity;
+option go_package = "pbf";
+
+import "pokedex.proto";
+import "msg.proto";
+
+message Trainer {
+	string uid = 1;
+	string name = 2;
+	string password = 3;
+	int32 age = 4;
+	Gender gender = 5;
+	msg.Timestamp start = 6;
+	pokedex.Pokemon.Collection pc = 7;
+	
+	enum Gender {
+		BOY = 0;
+		GIRL = 1;
+	}
+}
