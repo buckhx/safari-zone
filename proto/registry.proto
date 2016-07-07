@@ -44,8 +44,11 @@ service Registry {
 
 // IRL Scopes would live in different go packages and not need to be prefixed
 enum RegistryScope {
-	REG_READ = 0; 
-	REG_ADMIN = 1;
+	CIVILIAN = 0;
+	TRAINER = 1;
+	GYM_LEADER = 2;
+	ELITE_FOUR = 3;
+	PROFESSOR = 4;
 }
 
 message Token {

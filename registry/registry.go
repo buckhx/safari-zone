@@ -56,11 +56,13 @@ func (r *Registry) Get(uid string) *pbf.Trainer {
 	return r.db.Get(uid).(*pbf.Trainer) // should check err
 }
 
-func (r *Registry) Authenticate(user *pbf.Trainer) *pbf.Token {
+func (r *Registry) Authenticate(user *pbf.Trainer, claims *pbf.Token_Scopes) *pbf.Token {
 	o := r.Get(user.Uid)
 	if o == nil || o.Password == util.Hash(user.Password) {
 		return nil
-	}
+	} // else if !user.ValidScopes(scopes) {
+	//	return nil
+	//}
 
 	return nil
 }
