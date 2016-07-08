@@ -15,54 +15,72 @@ var validator = regexp.MustCompile(`^[a-zA-Z0-9]{3,32}$`)
 
 type Registry struct {
 	sync.Mutex
-	db kvc.KVC
+	db   kvc.KVC
+	mint *Mint
 }
 
-func NewRegistry() *Registry {
+func New() *Registry {
 	return &Registry{
-		db: kvc.NewMem(),
+		db:   kvc.NewMem(),
+		mint: NewJwtMint(),
 	}
 }
 
-func (r *Registry) Add(user *pbf.Trainer) (err error) {
+func (r *Registry) Add(req *pbf.Trainer) (err error) {
 	switch {
-	case !validator.MatchString(user.Name):
+	case !validator.MatchString(req.Name):
 		err = fmt.Errorf("User name must match /%s/", validator)
-	case !validator.MatchString(user.Password):
+	case !validator.MatchString(req.Password):
 		err = fmt.Errorf("Password must match /%s/", validator)
-	case user.Age < 10:
+	case req.Age < 10:
 		err = fmt.Errorf("Trainer is too young!")
-	case user.Age > 99:
+	case req.Age > 99:
 		err = fmt.Errorf("Trainer is too old!")
 	}
 	if err != nil {
 		return
 	}
-	user.Password = util.Hash(user.Password)
-	user.Start = &pbf.Timestamp{Unix: time.Now().Unix()}
-	user.Pc = &pbf.Pokemon_Collection{}
+	req.Password = util.Hash(req.Password)
+	req.Start = &pbf.Timestamp{Unix: time.Now().Unix()}
+	req.Pc = &pbf.Pokemon_Collection{}
 	r.Lock() // for race w/ GenUID
+	defer r.Unlock()
 	uid := util.GenUID()
 	for r.db.Has(uid) {
 		uid = util.GenUID()
 	}
-	user.Uid = uid
-	r.db.Set(uid, user)
-	defer r.Unlock()
+	req.Uid = uid
+	r.db.Set(uid, req)
 	return
 }
 
-func (r *Registry) Get(uid string) *pbf.Trainer {
-	return r.db.Get(uid).(*pbf.Trainer) // should check err
+func (r *Registry) Get(uid string) (*pbf.Trainer, error) {
+	v := r.db.Get(uid)
+	if v == nil {
+		return nil, fmt.Errorf("Invalid trainer: Not registered")
+	}
+	if u, ok := v.(*pbf.Trainer); !ok {
+		return nil, fmt.Errorf("Internal error: DB Assertion")
+	} else {
+		return u, nil
+	}
 }
 
-func (r *Registry) Authenticate(user *pbf.Trainer, claims *pbf.Token_Scopes) *pbf.Token {
-	o := r.Get(user.Uid)
-	if o == nil || o.Password == util.Hash(user.Password) {
-		return nil
-	} // else if !user.ValidScopes(scopes) {
-	//	return nil
-	//}
-
-	return nil
+func (r *Registry) Authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
+	v, err := r.Get(req.Uid)
+	switch {
+	case err != nil:
+		break
+	case v.Password == util.Hash(req.Password):
+		err = fmt.Errorf("Invalid trainer: Password")
+	case user{v}.hasScope(req.Scope...):
+		err = fmt.Errorf("Invalid trainer: Scope")
+	}
+	if err != nil {
+		return
+	}
+	if sig, err := r.mint.IssueToken(req.Uid, DefaultTokenDur, req.Scope...); err == nil {
+		tok = &pbf.Token{Access: sig, Scope: req.Scope}
+	}
+	return
 }

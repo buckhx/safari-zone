@@ -3,8 +3,6 @@ syntax = "proto3";
 package buckhx.safari.msg;
 option go_package = "pbf";
 
-import "pokedex.proto";
-
 message Timestamp {
 	int64 unix = 1;
 }

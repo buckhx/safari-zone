@@ -19,12 +19,6 @@ service Pokedex {
 	}
 }
 
-enum PokedexScope {
-	PDX_READ = 0;
-	PDX_WRITE = 1;
-}
-
-
 // Pokemon message is info about a pokemon
 message Pokemon {
 	// Uid is the unique identifier for this individual pokemon

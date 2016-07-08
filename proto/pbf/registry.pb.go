@@ -11,8 +11,6 @@ import _ "github.com/gengo/grpc-gateway/third_party/googleapis/google/api"
 
 import strconv "strconv"
 
-import bytes "bytes"
-
 import strings "strings"
 import github_com_gogo_protobuf_proto "github.com/gogo/protobuf/proto"
 import sort "sort"
@@ -30,87 +28,129 @@ var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
 
-// IRL Scopes would live in different go packages and not need to be prefixed
-type RegistryScope int32
+type Trainer_Gender int32
 
 const (
-	CIVILIAN   RegistryScope = 0
-	TRAINER    RegistryScope = 1
-	GYM_LEADER RegistryScope = 2
-	ELITE_FOUR RegistryScope = 3
-	PROFESSOR  RegistryScope = 4
+	BOY  Trainer_Gender = 0
+	GIRL Trainer_Gender = 1
 )
 
-var RegistryScope_name = map[int32]string{
-	0: "CIVILIAN",
-	1: "TRAINER",
-	2: "GYM_LEADER",
-	3: "ELITE_FOUR",
-	4: "PROFESSOR",
+var Trainer_Gender_name = map[int32]string{
+	0: "BOY",
+	1: "GIRL",
 }
-var RegistryScope_value = map[string]int32{
-	"CIVILIAN":   0,
-	"TRAINER":    1,
-	"GYM_LEADER": 2,
-	"ELITE_FOUR": 3,
-	"PROFESSOR":  4,
+var Trainer_Gender_value = map[string]int32{
+	"BOY":  0,
+	"GIRL": 1,
 }
 
-func (RegistryScope) EnumDescriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{0} }
+func (Trainer_Gender) EnumDescriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{0, 0} }
 
-type Token_Type int32
-
-const (
-	ACCESS Token_Type = 0
-)
-
-var Token_Type_name = map[int32]string{
-	0: "ACCESS",
-}
-var Token_Type_value = map[string]int32{
-	"ACCESS": 0,
+type Trainer struct {
+	Uid      string              `protobuf:"bytes,1,opt,name=uid,proto3" json:"uid,omitempty"`
+	Name     string              `protobuf:"bytes,2,opt,name=name,proto3" json:"name,omitempty"`
+	Password string              `protobuf:"bytes,3,opt,name=password,proto3" json:"password,omitempty"`
+	Age      int32               `protobuf:"varint,4,opt,name=age,proto3" json:"age,omitempty"`
+	Gender   Trainer_Gender      `protobuf:"varint,5,opt,name=gender,proto3,enum=buckhx.safari.registry.Trainer_Gender" json:"gender,omitempty"`
+	Start    *Timestamp          `protobuf:"bytes,6,opt,name=start" json:"start,omitempty"`
+	Pc       *Pokemon_Collection `protobuf:"bytes,7,opt,name=pc" json:"pc,omitempty"`
+	Scope    []string            `protobuf:"bytes,8,rep,name=scope" json:"scope,omitempty"`
 }
 
-func (Token_Type) EnumDescriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{0, 0} }
+func (m *Trainer) Reset()                    { *m = Trainer{} }
+func (*Trainer) ProtoMessage()               {}
+func (*Trainer) Descriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{0} }
+
+func (m *Trainer) GetStart() *Timestamp {
+	if m != nil {
+		return m.Start
+	}
+	return nil
+}
+
+func (m *Trainer) GetPc() *Pokemon_Collection {
+	if m != nil {
+		return m.Pc
+	}
+	return nil
+}
 
 type Token struct {
-	Token []byte     `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
-	Type  Token_Type `protobuf:"varint,2,opt,name=type,proto3,enum=buckhx.safari.registry.Token_Type" json:"type,omitempty"`
+	Access string   `protobuf:"bytes,1,opt,name=access,proto3" json:"access,omitempty"`
+	Scope  []string `protobuf:"bytes,2,rep,name=scope" json:"scope,omitempty"`
 }
 
 func (m *Token) Reset()                    { *m = Token{} }
 func (*Token) ProtoMessage()               {}
-func (*Token) Descriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{0} }
-
-type Token_Scopes struct {
-	Registry RegistryScope `protobuf:"varint,1,opt,name=registry,proto3,enum=buckhx.safari.registry.RegistryScope" json:"registry,omitempty"`
-	Pokedex  PokedexScope  `protobuf:"varint,2,opt,name=pokedex,proto3,enum=buckhx.safari.pokedex.PokedexScope" json:"pokedex,omitempty"`
-	Zone     ZoneScope     `protobuf:"varint,3,opt,name=zone,proto3,enum=buckhx.safari.zone.ZoneScope" json:"zone,omitempty"`
-}
-
-func (m *Token_Scopes) Reset()                    { *m = Token_Scopes{} }
-func (*Token_Scopes) ProtoMessage()               {}
-func (*Token_Scopes) Descriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{0, 0} }
+func (*Token) Descriptor() ([]byte, []int) { return fileDescriptorRegistry, []int{1} }
 
 func init() {
+	proto.RegisterType((*Trainer)(nil), "buckhx.safari.registry.Trainer")
 	proto.RegisterType((*Token)(nil), "buckhx.safari.registry.Token")
-	proto.RegisterType((*Token_Scopes)(nil), "buckhx.safari.registry.Token.Scopes")
-	proto.RegisterEnum("buckhx.safari.registry.RegistryScope", RegistryScope_name, RegistryScope_value)
-	proto.RegisterEnum("buckhx.safari.registry.Token_Type", Token_Type_name, Token_Type_value)
+	proto.RegisterEnum("buckhx.safari.registry.Trainer_Gender", Trainer_Gender_name, Trainer_Gender_value)
 }
-func (x RegistryScope) String() string {
-	s, ok := RegistryScope_name[int32(x)]
+func (x Trainer_Gender) String() string {
+	s, ok := Trainer_Gender_name[int32(x)]
 	if ok {
 		return s
 	}
 	return strconv.Itoa(int(x))
 }
-func (x Token_Type) String() string {
-	s, ok := Token_Type_name[int32(x)]
-	if ok {
-		return s
+func (this *Trainer) Equal(that interface{}) bool {
+	if that == nil {
+		if this == nil {
+			return true
+		}
+		return false
 	}
-	return strconv.Itoa(int(x))
+
+	that1, ok := that.(*Trainer)
+	if !ok {
+		that2, ok := that.(Trainer)
+		if ok {
+			that1 = &that2
+		} else {
+			return false
+		}
+	}
+	if that1 == nil {
+		if this == nil {
+			return true
+		}
+		return false
+	} else if this == nil {
+		return false
+	}
+	if this.Uid != that1.Uid {
+		return false
+	}
+	if this.Name != that1.Name {
+		return false
+	}
+	if this.Password != that1.Password {
+		return false
+	}
+	if this.Age != that1.Age {
+		return false
+	}
+	if this.Gender != that1.Gender {
+		return false
+	}
+	if !this.Start.Equal(that1.Start) {
+		return false
+	}
+	if !this.Pc.Equal(that1.Pc) {
+		return false
+	}
+	if len(this.Scope) != len(that1.Scope) {
+		return false
+	}
+	for i := range this.Scope {
+		if this.Scope[i] != that1.Scope[i] {
+			return false
+		}
+	}
+	return true
 }
 func (this *Token) Equal(that interface{}) bool {
 	if that == nil {
@@ -137,49 +177,39 @@ func (this *Token) Equal(that interface{}) bool {
 	} else if this == nil {
 		return false
 	}
-	if !bytes.Equal(this.Token, that1.Token) {
+	if this.Access != that1.Access {
 		return false
 	}
-	if this.Type != that1.Type {
+	if len(this.Scope) != len(that1.Scope) {
 		return false
 	}
-	return true
-}
-func (this *Token_Scopes) Equal(that interface{}) bool {
-	if that == nil {
-		if this == nil {
-			return true
-		}
-		return false
-	}
-
-	that1, ok := that.(*Token_Scopes)
-	if !ok {
-		that2, ok := that.(Token_Scopes)
-		if ok {
-			that1 = &that2
-		} else {
+	for i := range this.Scope {
+		if this.Scope[i] != that1.Scope[i] {
 			return false
 		}
 	}
-	if that1 == nil {
-		if this == nil {
-			return true
-		}
-		return false
-	} else if this == nil {
-		return false
-	}
-	if this.Registry != that1.Registry {
-		return false
-	}
-	if this.Pokedex != that1.Pokedex {
-		return false
-	}
-	if this.Zone != that1.Zone {
-		return false
-	}
 	return true
+}
+func (this *Trainer) GoString() string {
+	if this == nil {
+		return "nil"
+	}
+	s := make([]string, 0, 12)
+	s = append(s, "&pbf.Trainer{")
+	s = append(s, "Uid: "+fmt.Sprintf("%#v", this.Uid)+",\n")
+	s = append(s, "Name: "+fmt.Sprintf("%#v", this.Name)+",\n")
+	s = append(s, "Password: "+fmt.Sprintf("%#v", this.Password)+",\n")
+	s = append(s, "Age: "+fmt.Sprintf("%#v", this.Age)+",\n")
+	s = append(s, "Gender: "+fmt.Sprintf("%#v", this.Gender)+",\n")
+	if this.Start != nil {
+		s = append(s, "Start: "+fmt.Sprintf("%#v", this.Start)+",\n")
+	}
+	if this.Pc != nil {
+		s = append(s, "Pc: "+fmt.Sprintf("%#v", this.Pc)+",\n")
+	}
+	s = append(s, "Scope: "+fmt.Sprintf("%#v", this.Scope)+",\n")
+	s = append(s, "}")
+	return strings.Join(s, "")
 }
 func (this *Token) GoString() string {
 	if this == nil {
@@ -187,20 +217,8 @@ func (this *Token) GoString() string {
 	}
 	s := make([]string, 0, 6)
 	s = append(s, "&pbf.Token{")
-	s = append(s, "Token: "+fmt.Sprintf("%#v", this.Token)+",\n")
-	s = append(s, "Type: "+fmt.Sprintf("%#v", this.Type)+",\n")
-	s = append(s, "}")
-	return strings.Join(s, "")
-}
-func (this *Token_Scopes) GoString() string {
-	if this == nil {
-		return "nil"
-	}
-	s := make([]string, 0, 7)
-	s = append(s, "&pbf.Token_Scopes{")
-	s = append(s, "Registry: "+fmt.Sprintf("%#v", this.Registry)+",\n")
-	s = append(s, "Pokedex: "+fmt.Sprintf("%#v", this.Pokedex)+",\n")
-	s = append(s, "Zone: "+fmt.Sprintf("%#v", this.Zone)+",\n")
+	s = append(s, "Access: "+fmt.Sprintf("%#v", this.Access)+",\n")
+	s = append(s, "Scope: "+fmt.Sprintf("%#v", this.Scope)+",\n")
 	s = append(s, "}")
 	return strings.Join(s, "")
 }
@@ -390,6 +408,87 @@ var _Registry_serviceDesc = grpc.ServiceDesc{
 	Metadata: fileDescriptorRegistry,
 }
 
+func (m *Trainer) Marshal() (data []byte, err error) {
+	size := m.Size()
+	data = make([]byte, size)
+	n, err := m.MarshalTo(data)
+	if err != nil {
+		return nil, err
+	}
+	return data[:n], nil
+}
+
+func (m *Trainer) MarshalTo(data []byte) (int, error) {
+	var i int
+	_ = i
+	var l int
+	_ = l
+	if len(m.Uid) > 0 {
+		data[i] = 0xa
+		i++
+		i = encodeVarintRegistry(data, i, uint64(len(m.Uid)))
+		i += copy(data[i:], m.Uid)
+	}
+	if len(m.Name) > 0 {
+		data[i] = 0x12
+		i++
+		i = encodeVarintRegistry(data, i, uint64(len(m.Name)))
+		i += copy(data[i:], m.Name)
+	}
+	if len(m.Password) > 0 {
+		data[i] = 0x1a
+		i++
+		i = encodeVarintRegistry(data, i, uint64(len(m.Password)))
+		i += copy(data[i:], m.Password)
+	}
+	if m.Age != 0 {
+		data[i] = 0x20
+		i++
+		i = encodeVarintRegistry(data, i, uint64(m.Age))
+	}
+	if m.Gender != 0 {
+		data[i] = 0x28
+		i++
+		i = encodeVarintRegistry(data, i, uint64(m.Gender))
+	}
+	if m.Start != nil {
+		data[i] = 0x32
+		i++
+		i = encodeVarintRegistry(data, i, uint64(m.Start.Size()))
+		n1, err := m.Start.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n1
+	}
+	if m.Pc != nil {
+		data[i] = 0x3a
+		i++
+		i = encodeVarintRegistry(data, i, uint64(m.Pc.Size()))
+		n2, err := m.Pc.MarshalTo(data[i:])
+		if err != nil {
+			return 0, err
+		}
+		i += n2
+	}
+	if len(m.Scope) > 0 {
+		for _, s := range m.Scope {
+			data[i] = 0x42
+			i++
+			l = len(s)
+			for l >= 1<<7 {
+				data[i] = uint8(uint64(l)&0x7f | 0x80)
+				l >>= 7
+				i++
+			}
+			data[i] = uint8(l)
+			i++
+			i += copy(data[i:], s)
+		}
+	}
+	return i, nil
+}
+
 func (m *Token) Marshal() (data []byte, err error) {
 	size := m.Size()
 	data = make([]byte, size)
@@ -405,49 +504,26 @@ func (m *Token) MarshalTo(data []byte) (int, error) {
 	_ = i
 	var l int
 	_ = l
-	if len(m.Token) > 0 {
+	if len(m.Access) > 0 {
 		data[i] = 0xa
 		i++
-		i = encodeVarintRegistry(data, i, uint64(len(m.Token)))
-		i += copy(data[i:], m.Token)
+		i = encodeVarintRegistry(data, i, uint64(len(m.Access)))
+		i += copy(data[i:], m.Access)
 	}
-	if m.Type != 0 {
-		data[i] = 0x10
-		i++
-		i = encodeVarintRegistry(data, i, uint64(m.Type))
-	}
-	return i, nil
-}
-
-func (m *Token_Scopes) Marshal() (data []byte, err error) {
-	size := m.Size()
-	data = make([]byte, size)
-	n, err := m.MarshalTo(data)
-	if err != nil {
-		return nil, err
-	}
-	return data[:n], nil
-}
-
-func (m *Token_Scopes) MarshalTo(data []byte) (int, error) {
-	var i int
-	_ = i
-	var l int
-	_ = l
-	if m.Registry != 0 {
-		data[i] = 0x8
-		i++
-		i = encodeVarintRegistry(data, i, uint64(m.Registry))
-	}
-	if m.Pokedex != 0 {
-		data[i] = 0x10
-		i++
-		i = encodeVarintRegistry(data, i, uint64(m.Pokedex))
-	}
-	if m.Zone != 0 {
-		data[i] = 0x18
-		i++
-		i = encodeVarintRegistry(data, i, uint64(m.Zone))
+	if len(m.Scope) > 0 {
+		for _, s := range m.Scope {
+			data[i] = 0x12
+			i++
+			l = len(s)
+			for l >= 1<<7 {
+				data[i] = uint8(uint64(l)&0x7f | 0x80)
+				l >>= 7
+				i++
+			}
+			data[i] = uint8(l)
+			i++
+			i += copy(data[i:], s)
+		}
 	}
 	return i, nil
 }
@@ -479,30 +555,56 @@ func encodeVarintRegistry(data []byte, offset int, v uint64) int {
 	data[offset] = uint8(v)
 	return offset + 1
 }
-func (m *Token) Size() (n int) {
+func (m *Trainer) Size() (n int) {
 	var l int
 	_ = l
-	l = len(m.Token)
+	l = len(m.Uid)
 	if l > 0 {
 		n += 1 + l + sovRegistry(uint64(l))
 	}
-	if m.Type != 0 {
-		n += 1 + sovRegistry(uint64(m.Type))
+	l = len(m.Name)
+	if l > 0 {
+		n += 1 + l + sovRegistry(uint64(l))
+	}
+	l = len(m.Password)
+	if l > 0 {
+		n += 1 + l + sovRegistry(uint64(l))
+	}
+	if m.Age != 0 {
+		n += 1 + sovRegistry(uint64(m.Age))
+	}
+	if m.Gender != 0 {
+		n += 1 + sovRegistry(uint64(m.Gender))
+	}
+	if m.Start != nil {
+		l = m.Start.Size()
+		n += 1 + l + sovRegistry(uint64(l))
+	}
+	if m.Pc != nil {
+		l = m.Pc.Size()
+		n += 1 + l + sovRegistry(uint64(l))
+	}
+	if len(m.Scope) > 0 {
+		for _, s := range m.Scope {
+			l = len(s)
+			n += 1 + l + sovRegistry(uint64(l))
+		}
 	}
 	return n
 }
 
-func (m *Token_Scopes) Size() (n int) {
+func (m *Token) Size() (n int) {
 	var l int
 	_ = l
-	if m.Registry != 0 {
-		n += 1 + sovRegistry(uint64(m.Registry))
+	l = len(m.Access)
+	if l > 0 {
+		n += 1 + l + sovRegistry(uint64(l))
 	}
-	if m.Pokedex != 0 {
-		n += 1 + sovRegistry(uint64(m.Pokedex))
-	}
-	if m.Zone != 0 {
-		n += 1 + sovRegistry(uint64(m.Zone))
+	if len(m.Scope) > 0 {
+		for _, s := range m.Scope {
+			l = len(s)
+			n += 1 + l + sovRegistry(uint64(l))
+		}
 	}
 	return n
 }
@@ -520,25 +622,30 @@ func sovRegistry(x uint64) (n int) {
 func sozRegistry(x uint64) (n int) {
 	return sovRegistry(uint64((x << 1) ^ uint64((int64(x) >> 63))))
 }
+func (this *Trainer) String() string {
+	if this == nil {
+		return "nil"
+	}
+	s := strings.Join([]string{`&Trainer{`,
+		`Uid:` + fmt.Sprintf("%v", this.Uid) + `,`,
+		`Name:` + fmt.Sprintf("%v", this.Name) + `,`,
+		`Password:` + fmt.Sprintf("%v", this.Password) + `,`,
+		`Age:` + fmt.Sprintf("%v", this.Age) + `,`,
+		`Gender:` + fmt.Sprintf("%v", this.Gender) + `,`,
+		`Start:` + strings.Replace(fmt.Sprintf("%v", this.Start), "Timestamp", "Timestamp", 1) + `,`,
+		`Pc:` + strings.Replace(fmt.Sprintf("%v", this.Pc), "Pokemon_Collection", "Pokemon_Collection", 1) + `,`,
+		`Scope:` + fmt.Sprintf("%v", this.Scope) + `,`,
+		`}`,
+	}, "")
+	return s
+}
 func (this *Token) String() string {
 	if this == nil {
 		return "nil"
 	}
 	s := strings.Join([]string{`&Token{`,
-		`Token:` + fmt.Sprintf("%v", this.Token) + `,`,
-		`Type:` + fmt.Sprintf("%v", this.Type) + `,`,
-		`}`,
-	}, "")
-	return s
-}
-func (this *Token_Scopes) String() string {
-	if this == nil {
-		return "nil"
-	}
-	s := strings.Join([]string{`&Token_Scopes{`,
-		`Registry:` + fmt.Sprintf("%v", this.Registry) + `,`,
-		`Pokedex:` + fmt.Sprintf("%v", this.Pokedex) + `,`,
-		`Zone:` + fmt.Sprintf("%v", this.Zone) + `,`,
+		`Access:` + fmt.Sprintf("%v", this.Access) + `,`,
+		`Scope:` + fmt.Sprintf("%v", this.Scope) + `,`,
 		`}`,
 	}, "")
 	return s
@@ -550,6 +657,276 @@ func valueToStringRegistry(v interface{}) string {
 	}
 	pv := reflect.Indirect(rv).Interface()
 	return fmt.Sprintf("*%v", pv)
+}
+func (m *Trainer) Unmarshal(data []byte) error {
+	l := len(data)
+	iNdEx := 0
+	for iNdEx < l {
+		preIndex := iNdEx
+		var wire uint64
+		for shift := uint(0); ; shift += 7 {
+			if shift >= 64 {
+				return ErrIntOverflowRegistry
+			}
+			if iNdEx >= l {
+				return io.ErrUnexpectedEOF
+			}
+			b := data[iNdEx]
+			iNdEx++
+			wire |= (uint64(b) & 0x7F) << shift
+			if b < 0x80 {
+				break
+			}
+		}
+		fieldNum := int32(wire >> 3)
+		wireType := int(wire & 0x7)
+		if wireType == 4 {
+			return fmt.Errorf("proto: Trainer: wiretype end group for non-group")
+		}
+		if fieldNum <= 0 {
+			return fmt.Errorf("proto: Trainer: illegal tag %d (wire type %d)", fieldNum, wire)
+		}
+		switch fieldNum {
+		case 1:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Uid", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Uid = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 2:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Name", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Name = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 3:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Password", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Password = string(data[iNdEx:postIndex])
+			iNdEx = postIndex
+		case 4:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Age", wireType)
+			}
+			m.Age = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Age |= (int32(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 5:
+			if wireType != 0 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Gender", wireType)
+			}
+			m.Gender = 0
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				m.Gender |= (Trainer_Gender(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+		case 6:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Start", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Start == nil {
+				m.Start = &Timestamp{}
+			}
+			if err := m.Start.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 7:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Pc", wireType)
+			}
+			var msglen int
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				msglen |= (int(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			if msglen < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			postIndex := iNdEx + msglen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			if m.Pc == nil {
+				m.Pc = &Pokemon_Collection{}
+			}
+			if err := m.Pc.Unmarshal(data[iNdEx:postIndex]); err != nil {
+				return err
+			}
+			iNdEx = postIndex
+		case 8:
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Scope", wireType)
+			}
+			var stringLen uint64
+			for shift := uint(0); ; shift += 7 {
+				if shift >= 64 {
+					return ErrIntOverflowRegistry
+				}
+				if iNdEx >= l {
+					return io.ErrUnexpectedEOF
+				}
+				b := data[iNdEx]
+				iNdEx++
+				stringLen |= (uint64(b) & 0x7F) << shift
+				if b < 0x80 {
+					break
+				}
+			}
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
+				return io.ErrUnexpectedEOF
+			}
+			m.Scope = append(m.Scope, string(data[iNdEx:postIndex]))
+			iNdEx = postIndex
+		default:
+			iNdEx = preIndex
+			skippy, err := skipRegistry(data[iNdEx:])
+			if err != nil {
+				return err
+			}
+			if skippy < 0 {
+				return ErrInvalidLengthRegistry
+			}
+			if (iNdEx + skippy) > l {
+				return io.ErrUnexpectedEOF
+			}
+			iNdEx += skippy
+		}
+	}
+
+	if iNdEx > l {
+		return io.ErrUnexpectedEOF
+	}
+	return nil
 }
 func (m *Token) Unmarshal(data []byte) error {
 	l := len(data)
@@ -582,9 +959,9 @@ func (m *Token) Unmarshal(data []byte) error {
 		switch fieldNum {
 		case 1:
 			if wireType != 2 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Token", wireType)
+				return fmt.Errorf("proto: wrong wireType = %d for field Access", wireType)
 			}
-			var byteLen int
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowRegistry
@@ -594,28 +971,26 @@ func (m *Token) Unmarshal(data []byte) error {
 				}
 				b := data[iNdEx]
 				iNdEx++
-				byteLen |= (int(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-			if byteLen < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthRegistry
 			}
-			postIndex := iNdEx + byteLen
+			postIndex := iNdEx + intStringLen
 			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			m.Token = append(m.Token[:0], data[iNdEx:postIndex]...)
-			if m.Token == nil {
-				m.Token = []byte{}
-			}
+			m.Access = string(data[iNdEx:postIndex])
 			iNdEx = postIndex
 		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Type", wireType)
+			if wireType != 2 {
+				return fmt.Errorf("proto: wrong wireType = %d for field Scope", wireType)
 			}
-			m.Type = 0
+			var stringLen uint64
 			for shift := uint(0); ; shift += 7 {
 				if shift >= 64 {
 					return ErrIntOverflowRegistry
@@ -625,118 +1000,21 @@ func (m *Token) Unmarshal(data []byte) error {
 				}
 				b := data[iNdEx]
 				iNdEx++
-				m.Type |= (Token_Type(b) & 0x7F) << shift
+				stringLen |= (uint64(b) & 0x7F) << shift
 				if b < 0x80 {
 					break
 				}
 			}
-		default:
-			iNdEx = preIndex
-			skippy, err := skipRegistry(data[iNdEx:])
-			if err != nil {
-				return err
-			}
-			if skippy < 0 {
+			intStringLen := int(stringLen)
+			if intStringLen < 0 {
 				return ErrInvalidLengthRegistry
 			}
-			if (iNdEx + skippy) > l {
+			postIndex := iNdEx + intStringLen
+			if postIndex > l {
 				return io.ErrUnexpectedEOF
 			}
-			iNdEx += skippy
-		}
-	}
-
-	if iNdEx > l {
-		return io.ErrUnexpectedEOF
-	}
-	return nil
-}
-func (m *Token_Scopes) Unmarshal(data []byte) error {
-	l := len(data)
-	iNdEx := 0
-	for iNdEx < l {
-		preIndex := iNdEx
-		var wire uint64
-		for shift := uint(0); ; shift += 7 {
-			if shift >= 64 {
-				return ErrIntOverflowRegistry
-			}
-			if iNdEx >= l {
-				return io.ErrUnexpectedEOF
-			}
-			b := data[iNdEx]
-			iNdEx++
-			wire |= (uint64(b) & 0x7F) << shift
-			if b < 0x80 {
-				break
-			}
-		}
-		fieldNum := int32(wire >> 3)
-		wireType := int(wire & 0x7)
-		if wireType == 4 {
-			return fmt.Errorf("proto: Scopes: wiretype end group for non-group")
-		}
-		if fieldNum <= 0 {
-			return fmt.Errorf("proto: Scopes: illegal tag %d (wire type %d)", fieldNum, wire)
-		}
-		switch fieldNum {
-		case 1:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Registry", wireType)
-			}
-			m.Registry = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowRegistry
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				m.Registry |= (RegistryScope(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 2:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Pokedex", wireType)
-			}
-			m.Pokedex = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowRegistry
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				m.Pokedex |= (PokedexScope(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
-		case 3:
-			if wireType != 0 {
-				return fmt.Errorf("proto: wrong wireType = %d for field Zone", wireType)
-			}
-			m.Zone = 0
-			for shift := uint(0); ; shift += 7 {
-				if shift >= 64 {
-					return ErrIntOverflowRegistry
-				}
-				if iNdEx >= l {
-					return io.ErrUnexpectedEOF
-				}
-				b := data[iNdEx]
-				iNdEx++
-				m.Zone |= (ZoneScope(b) & 0x7F) << shift
-				if b < 0x80 {
-					break
-				}
-			}
+			m.Scope = append(m.Scope, string(data[iNdEx:postIndex]))
+			iNdEx = postIndex
 		default:
 			iNdEx = preIndex
 			skippy, err := skipRegistry(data[iNdEx:])
@@ -864,36 +1142,36 @@ var (
 )
 
 var fileDescriptorRegistry = []byte{
-	// 496 bytes of a gzipped FileDescriptorProto
-	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x8c, 0x92, 0xcf, 0x6b, 0xd4, 0x50,
-	0x10, 0xc7, 0x37, 0xd9, 0x1f, 0xdd, 0x8e, 0xbb, 0x21, 0x4c, 0xb5, 0x2c, 0xa9, 0x5d, 0x24, 0x22,
-	0x48, 0x0f, 0x09, 0x5d, 0xc1, 0x83, 0xe0, 0x21, 0xae, 0x69, 0x09, 0xac, 0xdd, 0xf2, 0x36, 0x0a,
-	0xad, 0x87, 0x92, 0x6d, 0x5f, 0xb7, 0xa1, 0x9a, 0x17, 0x92, 0xb7, 0xd0, 0x2a, 0x82, 0xf8, 0x17,
-	0x08, 0xfe, 0x13, 0xf5, 0x8f, 0xf0, 0xee, 0xb1, 0xe0, 0xc5, 0xa3, 0xad, 0x1e, 0x3c, 0xfa, 0x27,
-	0xf8, 0xf2, 0x92, 0x08, 0x5d, 0xb4, 0xf6, 0x30, 0x79, 0x33, 0x99, 0xf9, 0x7e, 0x98, 0x79, 0x6f,
-	0x40, 0x4b, 0xe8, 0x24, 0x4c, 0x79, 0x72, 0x6c, 0xc5, 0x09, 0xe3, 0x0c, 0x17, 0xc7, 0xd3, 0xdd,
-	0xc3, 0x83, 0x23, 0x2b, 0x0d, 0xf6, 0x83, 0x24, 0xb4, 0xca, 0xac, 0x71, 0x73, 0xc2, 0xd8, 0xe4,
-	0x05, 0xb5, 0x83, 0x38, 0xb4, 0x83, 0x28, 0x62, 0x3c, 0xe0, 0x21, 0x8b, 0xd2, 0x5c, 0x65, 0xb4,
-	0x63, 0x76, 0x48, 0xf7, 0xe8, 0x51, 0x11, 0xb6, 0x68, 0xc4, 0x43, 0x5e, 0x20, 0x0d, 0x78, 0xc5,
-	0x22, 0x5a, 0xf8, 0xf3, 0x2f, 0xd3, 0x49, 0xee, 0x9a, 0x1f, 0x55, 0xa8, 0xfb, 0x42, 0x16, 0xe1,
-	0x75, 0xa8, 0xf3, 0xcc, 0xe9, 0x28, 0xb7, 0x94, 0xbb, 0x2d, 0x92, 0x07, 0x78, 0x1f, 0x6a, 0xfc,
-	0x38, 0xa6, 0x1d, 0x55, 0xfc, 0xd4, 0x7a, 0xa6, 0xf5, 0xf7, 0xc6, 0x2c, 0x89, 0xb0, 0x7c, 0x51,
-	0x49, 0x64, 0xbd, 0xf1, 0x49, 0x81, 0xc6, 0x68, 0x97, 0xc5, 0x34, 0x45, 0x07, 0x9a, 0x65, 0x9d,
-	0x64, 0x6b, 0xbd, 0x3b, 0xff, 0xc2, 0x90, 0xc2, 0x91, 0x4a, 0xf2, 0x47, 0x86, 0x0f, 0x61, 0xae,
-	0x98, 0xad, 0x68, 0xe4, 0xf6, 0x0c, 0xa1, 0x9c, 0x7c, 0x33, 0x3f, 0x73, 0x7d, 0xa9, 0xc1, 0x55,
-	0xa8, 0x65, 0xd3, 0x77, 0xaa, 0x52, 0xbb, 0x3c, 0xa3, 0x95, 0x17, 0xb3, 0x2d, 0x3e, 0xb9, 0x4a,
-	0x96, 0x9a, 0x08, 0xb5, 0x6c, 0x1a, 0x04, 0x68, 0x38, 0xfd, 0xbe, 0x3b, 0x1a, 0xe9, 0x95, 0x95,
-	0x2d, 0x68, 0x5f, 0x68, 0x10, 0x5b, 0xd0, 0xec, 0x7b, 0xcf, 0xbc, 0x81, 0xe7, 0x6c, 0xe8, 0x15,
-	0xbc, 0x06, 0x73, 0x3e, 0x71, 0xbc, 0x0d, 0x97, 0xe8, 0x0a, 0x6a, 0x00, 0xeb, 0x5b, 0x4f, 0x76,
-	0x06, 0xae, 0xf3, 0x58, 0xc4, 0x6a, 0x16, 0xbb, 0x03, 0xcf, 0x77, 0x77, 0xd6, 0x86, 0x4f, 0x89,
-	0x5e, 0xc5, 0x36, 0xcc, 0x6f, 0x92, 0xe1, 0x9a, 0x00, 0x0f, 0x89, 0x5e, 0xeb, 0x9d, 0xa8, 0xd0,
-	0x2c, 0xd9, 0xf8, 0xbc, 0xf4, 0x69, 0x82, 0xb3, 0xcd, 0x16, 0x6f, 0xea, 0x27, 0x41, 0x18, 0xd1,
-	0xc4, 0x58, 0x9a, 0x49, 0x67, 0x0f, 0x4b, 0x68, 0x1a, 0x8b, 0xa5, 0xa0, 0xe6, 0xc2, 0xbb, 0x2f,
-	0x3f, 0x3e, 0xa8, 0x6d, 0xb3, 0x69, 0xf3, 0xbc, 0xfc, 0x81, 0xb2, 0x22, 0xe0, 0xd5, 0x75, 0xca,
-	0xff, 0xc7, 0xbd, 0x3c, 0x6d, 0x2e, 0x4a, 0xb2, 0x8e, 0x5a, 0x49, 0xb6, 0x5f, 0x4f, 0xc3, 0xbd,
-	0x37, 0x38, 0x86, 0xba, 0x1b, 0x5d, 0xa1, 0xed, 0xe5, 0x4b, 0xf7, 0xc8, 0x5c, 0x92, 0xf8, 0x1b,
-	0xb8, 0x70, 0x11, 0x6f, 0x07, 0x53, 0x7e, 0xf0, 0x68, 0xf5, 0xf4, 0xac, 0x5b, 0xf9, 0x2a, 0xec,
-	0xd7, 0x59, 0x57, 0x79, 0x7b, 0xde, 0x55, 0x4e, 0x84, 0x7d, 0x16, 0x76, 0x2a, 0xec, 0x9b, 0xb0,
-	0x9f, 0xe7, 0x22, 0x27, 0xce, 0xf7, 0xdf, 0xbb, 0x95, 0xed, 0x6a, 0x3c, 0xde, 0x1f, 0x37, 0xe4,
-	0xae, 0xdf, 0xfb, 0x1d, 0x00, 0x00, 0xff, 0xff, 0xce, 0x4b, 0xc0, 0x77, 0x67, 0x03, 0x00, 0x00,
+	// 482 bytes of a gzipped FileDescriptorProto
+	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x8c, 0x52, 0x4f, 0x8b, 0xd3, 0x40,
+	0x14, 0x6f, 0x92, 0x26, 0xcd, 0x8e, 0x6c, 0x29, 0x6f, 0xb5, 0x84, 0x76, 0xad, 0x4b, 0x0e, 0xa2,
+	0x1e, 0x12, 0xac, 0x78, 0xd0, 0x83, 0x87, 0x15, 0x29, 0x82, 0xa0, 0x84, 0x5e, 0x14, 0x44, 0xa6,
+	0xc9, 0x6c, 0x36, 0x6c, 0x93, 0x19, 0x66, 0xa6, 0xb8, 0x22, 0x82, 0xf8, 0x09, 0x04, 0xbf, 0x84,
+	0x47, 0xbf, 0x81, 0x57, 0x8f, 0x0b, 0x5e, 0x3c, 0xba, 0xab, 0x07, 0x8f, 0x7e, 0x04, 0x5f, 0xfe,
+	0xd4, 0x3f, 0x4b, 0xa5, 0x7b, 0x78, 0xe4, 0xbd, 0x37, 0xbf, 0xdf, 0xef, 0xcd, 0xfb, 0x65, 0x48,
+	0x57, 0xb2, 0x34, 0x53, 0x5a, 0xbe, 0x08, 0x84, 0xe4, 0x9a, 0x43, 0x7f, 0xb6, 0x88, 0x0f, 0xf6,
+	0x0f, 0x03, 0x45, 0xf7, 0xa8, 0xcc, 0x82, 0xe5, 0xe9, 0x60, 0x3b, 0xe5, 0x3c, 0x9d, 0xb3, 0x90,
+	0x8a, 0x2c, 0xa4, 0x45, 0xc1, 0x35, 0xd5, 0x19, 0x2f, 0x54, 0xcd, 0x1a, 0x6c, 0x0a, 0x7e, 0xc0,
+	0x12, 0x76, 0xd8, 0x94, 0x1b, 0xb9, 0x4a, 0xeb, 0xd4, 0xff, 0x68, 0x92, 0xce, 0x54, 0xd2, 0xac,
+	0x60, 0x12, 0x7a, 0xc4, 0x5a, 0x64, 0x89, 0x67, 0xec, 0x18, 0x57, 0x36, 0xa2, 0x32, 0x05, 0x20,
+	0xed, 0x82, 0xe6, 0xcc, 0x33, 0xab, 0x56, 0x95, 0xc3, 0x80, 0xb8, 0x82, 0x2a, 0xf5, 0x9c, 0xcb,
+	0xc4, 0xb3, 0xaa, 0xfe, 0xef, 0xba, 0x54, 0xa0, 0x29, 0xf3, 0xda, 0xd8, 0xb6, 0xa3, 0x32, 0x85,
+	0x3b, 0xc4, 0x49, 0x59, 0x91, 0x30, 0xe9, 0xd9, 0xd8, 0xec, 0x8e, 0x2f, 0x07, 0xab, 0x17, 0x08,
+	0x9a, 0x4b, 0x04, 0x93, 0x0a, 0x1d, 0x35, 0x2c, 0x18, 0x13, 0x5b, 0x69, 0x2a, 0xb5, 0xe7, 0x20,
+	0xfd, 0xdc, 0x78, 0xfb, 0x14, 0xbd, 0x5c, 0x64, 0x9a, 0xe5, 0x0c, 0x31, 0xb9, 0x88, 0x6a, 0x28,
+	0xdc, 0x22, 0xa6, 0x88, 0xbd, 0x4e, 0x45, 0xb8, 0x7a, 0x8a, 0xb0, 0x34, 0xe2, 0x11, 0x7e, 0x73,
+	0x5e, 0x04, 0x77, 0xf9, 0x7c, 0xce, 0xe2, 0xd2, 0xab, 0x08, 0x49, 0x70, 0x1e, 0xc7, 0xc5, 0x5c,
+	0x30, 0xcf, 0xdd, 0xb1, 0x70, 0xb3, 0xba, 0xf0, 0x87, 0xc4, 0xa9, 0xaf, 0x05, 0x1d, 0x62, 0xed,
+	0x3e, 0x7c, 0xdc, 0x6b, 0x81, 0x4b, 0xda, 0x93, 0xfb, 0xd1, 0x83, 0x9e, 0xe1, 0xdf, 0x24, 0xf6,
+	0x14, 0xc5, 0x0a, 0xe8, 0x13, 0x87, 0xc6, 0x31, 0x53, 0xaa, 0x71, 0xb0, 0xa9, 0xfe, 0x68, 0x9a,
+	0x7f, 0x69, 0x8e, 0x3f, 0x98, 0xc4, 0x8d, 0x9a, 0xe5, 0xe1, 0xe9, 0x32, 0xc7, 0x11, 0x97, 0xd6,
+	0x38, 0x34, 0x18, 0xae, 0xf0, 0x20, 0x62, 0x4a, 0xe0, 0xef, 0x66, 0xfe, 0xd6, 0x9b, 0xcf, 0xdf,
+	0xdf, 0x99, 0x9b, 0xbe, 0x1b, 0xea, 0x1a, 0x7e, 0xdb, 0xb8, 0x06, 0xcf, 0x88, 0x35, 0x61, 0x7a,
+	0xbd, 0xf2, 0x3a, 0x80, 0xdf, 0xaf, 0xd4, 0x7b, 0xd0, 0x5d, 0xaa, 0x87, 0x2f, 0xf1, 0x99, 0xbc,
+	0x82, 0x84, 0xd8, 0xf7, 0x8a, 0x33, 0x5d, 0xfe, 0xe2, 0x7f, 0x01, 0xa5, 0x87, 0xfe, 0xb0, 0x1a,
+	0x70, 0x01, 0xb6, 0xfe, 0x1d, 0x10, 0xd2, 0x85, 0xde, 0xdf, 0xbd, 0x7e, 0x74, 0x3c, 0x6a, 0x7d,
+	0xc1, 0xf8, 0x79, 0x3c, 0x32, 0x5e, 0x9f, 0x8c, 0x8c, 0xf7, 0x18, 0x9f, 0x30, 0x8e, 0x30, 0xbe,
+	0x62, 0xfc, 0x38, 0xc1, 0x33, 0xfc, 0xbe, 0xfd, 0x36, 0x6a, 0x3d, 0xb1, 0xc4, 0x6c, 0x6f, 0xe6,
+	0x54, 0xaf, 0xfc, 0xc6, 0xaf, 0x00, 0x00, 0x00, 0xff, 0xff, 0xb0, 0xb7, 0x5c, 0xc9, 0x47, 0x03,
+	0x00, 0x00,
 }

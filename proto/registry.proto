@@ -5,8 +5,6 @@ option go_package = "pbf";
 
 import "google/api/annotations.proto";
 import "pokedex.proto";
-import "entity.proto";
-import "zone.proto";
 import "msg.proto";
 
 // Registry is a service to register trainers
@@ -15,7 +13,7 @@ service Registry {
 	//
 	// Trainer name, password, age & gender are required. 
 	// Any other supplied fields will be ignored
-	rpc Register (entity.Trainer) returns (msg.Response) {
+	rpc Register (Trainer) returns (msg.Response) {
 		option (google.api.http) = {
 			post: "/trainer"
 			body: "*"
@@ -25,7 +23,7 @@ service Registry {
 	// Get fetchs a trainer
 	//
 	// The populated fields will depend on the auth scope of the token
-	rpc Get (entity.Trainer) returns (entity.Trainer) {
+	rpc Get (Trainer) returns (Trainer) {
 		option (google.api.http) = {
 			get: "/trainer/{uid}"
 		};
@@ -35,33 +33,30 @@ service Registry {
 	//
 	// HTTPS required w/ HTTP basic access authentication via a header
 	// Authorization: Basic BASE64({user:pass})
-	rpc Enter (entity.Trainer) returns (Token) {
+	rpc Enter (Trainer) returns (Token) {
 		option (google.api.http) = {
 			get: "/trainer/{uid}/auth"
 		};
 	}
 }
 
-// IRL Scopes would live in different go packages and not need to be prefixed
-enum RegistryScope {
-	CIVILIAN = 0;
-	TRAINER = 1;
-	GYM_LEADER = 2;
-	ELITE_FOUR = 3;
-	PROFESSOR = 4;
+message Trainer {
+	string uid = 1;
+	string name = 2;
+	string password = 3;
+	int32 age = 4;
+	Gender gender = 5;
+	msg.Timestamp start = 6;
+	pokedex.Pokemon.Collection pc = 7;
+	repeated string scope = 8;
+	
+	enum Gender {
+		BOY = 0;
+		GIRL = 1;
+	}
 }
 
 message Token {
-	bytes token = 1;
-	Type type = 2;
-	enum Type {
-		ACCESS = 0;
-	}
-	message Scopes {
-		RegistryScope registry = 1;
-		pokedex.PokedexScope pokedex = 2;
-		zone.ZoneScope zone = 3;
-		// Since these are all in the same go pkg, we have to avoid name collisions
-		// IRL these service would live in different packages
-	}
+	string access = 1;
+	repeated string scope = 2;
 }

@@ -1,5 +1,9 @@
 all: proto docs
 
+clean:
+	rm -rf ./proto/pbf/*
+	rm -rf ./proto/docs/*
+
 docs:
 	mkdir -p ./proto/docs
 	protoc -I /usr/local/include -I ./proto/ \

@@ -4,8 +4,8 @@ package buckhx.safari.zone;
 option go_package = "pbf";
 
 import "google/api/annotations.proto";
+import "registry.proto";
 import "pokedex.proto";
-import "entity.proto";
 import "msg.proto";
 
 // Safari is a service that trainers join and catch pokemon on
@@ -29,14 +29,8 @@ service Zone {
 	}
 }
 
-enum ZoneScope {
-	ZONE_READ = 0;
-	ZONE_WRITE = 1;
-	ZONE_ADMIN = 2;
-}
-
 message Event {
-	entity.Trainer trainer = 1;
+	registry.Trainer trainer = 1;
 	pokedex.Pokemon pokemon = 2;
 	Region region = 3;
 	msg.Timestamp time = 4;
