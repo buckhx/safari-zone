@@ -38,6 +38,15 @@ service Registry {
 			get: "/trainer/{uid}/auth"
 		};
 	}
+
+	// Certificate returns the cert used to verify token signatures
+	//
+	// The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517
+	rpc Certificate (Trainer) returns (Cert) {
+		option (google.api.http) = {
+			get: "/cert"
+		};
+	}
 }
 
 message Trainer {
@@ -59,4 +68,8 @@ message Trainer {
 message Token {
 	string access = 1;
 	repeated string scope = 2;
+}
+
+message Cert {
+	bytes jwk = 1;
 }

@@ -7,22 +7,28 @@ import (
 	"time"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/registry/mint"
 	"github.com/buckhx/safari-zone/util"
 	"github.com/buckhx/safari-zone/util/kvc"
 )
 
 var validator = regexp.MustCompile(`^[a-zA-Z0-9]{3,32}$`)
 
+const (
+	Issuer   = "buckhx.safari.registry"
+	TokenDur = 24 * time.Hour
+)
+
 type Registry struct {
 	sync.Mutex
 	db   kvc.KVC
-	mint *Mint
+	mint *mint.Mint
 }
 
 func New() *Registry {
 	return &Registry{
 		db:   kvc.NewMem(),
-		mint: NewJwtMint(),
+		mint: mint.NewEC(Issuer, ""),
 	}
 }
 
@@ -79,7 +85,7 @@ func (r *Registry) Authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
 	if err != nil {
 		return
 	}
-	if sig, err := r.mint.IssueToken(req.Uid, DefaultTokenDur, req.Scope...); err == nil {
+	if sig, err := r.mint.IssueToken(req.Uid, TokenDur, req.Scope...); err == nil {
 		tok = &pbf.Token{Access: sig, Scope: req.Scope}
 	}
 	return

@@ -17,6 +17,7 @@
 		Pokemon
 		Trainer
 		Token
+		Cert
 		Event
 		Region
 */

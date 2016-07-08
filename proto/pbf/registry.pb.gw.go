@@ -110,6 +110,23 @@ func request_Registry_Enter_0(ctx context.Context, marshaler runtime.Marshaler, 
 
 }
 
+var (
+	filter_Registry_Certificate_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_Registry_Certificate_0(ctx context.Context, marshaler runtime.Marshaler, client RegistryClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq Trainer
+	var metadata runtime.ServerMetadata
+
+	if err := runtime.PopulateQueryParameters(&protoReq, req.URL.Query(), filter_Registry_Certificate_0); err != nil {
+		return nil, metadata, grpc.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.Certificate(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
 // RegisterRegistryHandlerFromEndpoint is same as RegisterRegistryHandler but
 // automatically dials to "endpoint" and closes the connection when "ctx" gets done.
 func RegisterRegistryHandlerFromEndpoint(ctx context.Context, mux *runtime.ServeMux, endpoint string, opts []grpc.DialOption) (err error) {
@@ -224,6 +241,34 @@ func RegisterRegistryHandler(ctx context.Context, mux *runtime.ServeMux, conn *g
 
 	})
 
+	mux.Handle("GET", pattern_Registry_Certificate_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(ctx)
+		defer cancel()
+		if cn, ok := w.(http.CloseNotifier); ok {
+			go func(done <-chan struct{}, closed <-chan bool) {
+				select {
+				case <-done:
+				case <-closed:
+					cancel()
+				}
+			}(ctx.Done(), cn.CloseNotify())
+		}
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		rctx, err := runtime.AnnotateContext(ctx, req)
+		if err != nil {
+			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+		}
+		resp, md, err := request_Registry_Certificate_0(rctx, inboundMarshaler, client, req, pathParams)
+		ctx = runtime.NewServerMetadataContext(ctx, md)
+		if err != nil {
+			runtime.HTTPError(ctx, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_Registry_Certificate_0(ctx, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -233,6 +278,8 @@ var (
 	pattern_Registry_Get_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1}, []string{"trainer", "uid"}, ""))
 
 	pattern_Registry_Enter_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 1, 0, 4, 1, 5, 1, 2, 2}, []string{"trainer", "uid", "auth"}, ""))
+
+	pattern_Registry_Certificate_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0}, []string{"cert"}, ""))
 )
 
 var (
@@ -241,4 +288,6 @@ var (
 	forward_Registry_Get_0 = runtime.ForwardResponseMessage
 
 	forward_Registry_Enter_0 = runtime.ForwardResponseMessage
+
+	forward_Registry_Certificate_0 = runtime.ForwardResponseMessage
 )

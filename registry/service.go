@@ -3,6 +3,8 @@ package registry
 import (
 	"net/http"
 
+	"google.golang.org/grpc"
+
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"golang.org/x/net/context"
 )
@@ -27,6 +29,17 @@ func (s *RegistrySrv) Get(context.Context, *pbf.Trainer) (*pbf.Trainer, error) {
 // HTTPS required w/ HTTP basic access authentication via a header
 // Authorization: Basic BASE64({user:pass})
 func (s *RegistrySrv) Enter(context.Context, *pbf.Trainer) (*pbf.Token, error) { return nil, nil }
+
+// Certificate returns the cert used to verify token signatures
+//
+// The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517
+func (s *RegistrySrv) Certificate(ctx context.Context, in *pbf.Trainer, opts ...grpc.CallOption) (*pbf.Cert, error) {
+	jwk, err := s.mint.MarshalPublicJwk()
+	if err != nil {
+		return
+	}
+	return &pbf.Cert{jwk: jwk}, nil
+}
 
 func (s *RegistrySrv) Listen() error { return nil }
 
