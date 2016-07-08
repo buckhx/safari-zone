@@ -1,7 +1,7 @@
 package mint
 
 import (
-	"crypto"
+	"crypto/ecdsa"
 	"time"
 
 	"github.com/buckhx/safari-zone/util"
@@ -12,19 +12,19 @@ import (
 type Mint struct {
 	owner string
 	alg   jwt.SigningMethod
-	key   crypto.PrivateKey
+	key   *ecdsa.PrivateKey
 }
 
 // NewEC creates a new mint w/ a ES256 private key from a .pem file at the given path
 func NewEC256(owner string, pem []byte) (m *Mint, err error) {
-	k, err := LoadECPrivateKey(pem)
+	key, err := LoadECPrivateKey(pem)
 	if err != nil {
 		return
 	}
 	m = &Mint{
 		owner: owner,
-		alg:   jwt.SigningMethod,
-		key:   k,
+		alg:   jwt.SigningMethodES256,
+		key:   key,
 	}
 	return
 }
@@ -44,8 +44,8 @@ func (m *Mint) IssueToken(sub string, dur time.Duration, scope ...string) (strin
 	return jwt.NewWithClaims(m.alg, claims).SignedString(m.key)
 }
 
-func (m *Mint) MarshalPublicJwk() ([]byte, err) {
-	return MarshalJwkJson(m.owner, m.alg.Alg(), m.key.Public())
+func (m *Mint) MarshalPublicJwk() ([]byte, error) {
+	return MarshalJwkJSON(m.owner, m.alg.Alg(), m.key.Public())
 }
 
 type claims struct {

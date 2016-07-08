@@ -1,16 +1,32 @@
 package registry
 
 import (
+	"log"
+	"net"
 	"net/http"
 
 	"google.golang.org/grpc"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/srv"
+	"github.com/gengo/grpc-gateway/runtime"
 	"golang.org/x/net/context"
 )
 
 type RegistrySrv struct {
 	*Registry
+	addr string
+}
+
+func NewService(pemfile, addr string) (srv.Service, error) {
+	r, err := New(pemfile)
+	if err != nil {
+		return nil, err
+	}
+	return &RegistrySrv{
+		Registry: r,
+		addr:     addr,
+	}, nil
 }
 
 // Register makes a creates a new trainer in the safari
@@ -33,14 +49,32 @@ func (s *RegistrySrv) Enter(context.Context, *pbf.Trainer) (*pbf.Token, error) {
 // Certificate returns the cert used to verify token signatures
 //
 // The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517
-func (s *RegistrySrv) Certificate(ctx context.Context, in *pbf.Trainer, opts ...grpc.CallOption) (*pbf.Cert, error) {
+func (s *RegistrySrv) Certificate(ctx context.Context, in *pbf.Trainer) (*pbf.Cert, error) {
 	jwk, err := s.mint.MarshalPublicJwk()
 	if err != nil {
-		return
+		return nil, err
 	}
-	return &pbf.Cert{jwk: jwk}, nil
+	return &pbf.Cert{Jwk: jwk}, nil
 }
 
-func (s *RegistrySrv) Listen() error { return nil }
+func (s *RegistrySrv) Listen() error {
+	tcp, err := net.Listen("tcp", s.addr)
+	if err != nil {
+		return err
+	}
+	rpc := grpc.NewServer()
+	pbf.RegisterRegistryServer(rpc, s)
+	log.Printf("%T listening at %s", s, s.addr)
+	return rpc.Serve(tcp)
+}
 
-func (s *RegistrySrv) Mux() (http.Handler, error) { return nil, nil }
+func (s *RegistrySrv) Mux() (http.Handler, error) {
+	ctx := context.Background()
+	mux := runtime.NewServeMux()
+	opts := []grpc.DialOption{grpc.WithInsecure()}
+	err := pbf.RegisterRegistryHandlerFromEndpoint(ctx, mux, s.addr, opts)
+	if err != nil {
+		mux = nil
+	}
+	return http.Handler(mux), err
+}

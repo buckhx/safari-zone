@@ -2,6 +2,7 @@ package registry
 
 import (
 	"fmt"
+	"io/ioutil"
 	"regexp"
 	"sync"
 	"time"
@@ -25,11 +26,21 @@ type Registry struct {
 	mint *mint.Mint
 }
 
-func New() *Registry {
-	return &Registry{
-		db:   kvc.NewMem(),
-		mint: mint.NewEC(Issuer, ""),
+// pem is the path to .pem private key used to sign tokens
+func New(pemfile string) (r *Registry, err error) {
+	k, err := ioutil.ReadFile(pemfile)
+	if err != nil {
+		return
 	}
+	m, err := mint.NewEC256(Issuer, k)
+	if err != nil {
+		return
+	}
+	r = &Registry{
+		db:   kvc.NewMem(),
+		mint: m,
+	}
+	return
 }
 
 func (r *Registry) Add(req *pbf.Trainer) (err error) {
