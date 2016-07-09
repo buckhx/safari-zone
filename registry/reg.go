@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -20,14 +21,14 @@ const (
 	TokenDur = 24 * time.Hour
 )
 
-type Registry struct {
+type registry struct {
 	sync.Mutex
 	db   kvc.KVC
 	mint *mint.Mint
 }
 
 // pem is the path to .pem private key used to sign tokens
-func New(pemfile string) (r *Registry, err error) {
+func newreg(pemfile string) (r *registry, err error) {
 	k, err := ioutil.ReadFile(pemfile)
 	if err != nil {
 		return
@@ -36,14 +37,14 @@ func New(pemfile string) (r *Registry, err error) {
 	if err != nil {
 		return
 	}
-	r = &Registry{
+	r = &registry{
 		db:   kvc.NewMem(),
 		mint: m,
 	}
 	return
 }
 
-func (r *Registry) Add(req *pbf.Trainer) (err error) {
+func (r *registry) add(req *pbf.Trainer) (err error) {
 	switch {
 	case !validator.MatchString(req.Name):
 		err = fmt.Errorf("User name must match /%s/", validator)
@@ -71,8 +72,8 @@ func (r *Registry) Add(req *pbf.Trainer) (err error) {
 	return
 }
 
-func (r *Registry) Get(uid string) (*pbf.Trainer, error) {
-	v := r.db.Get(uid)
+func (r *registry) get(uid string) (*pbf.Trainer, error) {
+	v := r.db.Get(strings.ToUpper(uid))
 	if v == nil {
 		return nil, fmt.Errorf("Invalid trainer: Not registered")
 	}
@@ -83,14 +84,14 @@ func (r *Registry) Get(uid string) (*pbf.Trainer, error) {
 	}
 }
 
-func (r *Registry) Authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
-	v, err := r.Get(req.Uid)
+func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
+	v, err := r.get(req.Uid)
 	switch {
 	case err != nil:
 		break
 	case v.Password == util.Hash(req.Password):
 		err = fmt.Errorf("Invalid trainer: Password")
-	case user{v}.hasScope(req.Scope...):
+	case !user{v}.hasScope(req.Scope...):
 		err = fmt.Errorf("Invalid trainer: Scope")
 	}
 	if err != nil {

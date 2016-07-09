@@ -1,6 +1,7 @@
 package registry
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -14,17 +15,17 @@ import (
 )
 
 type RegistrySrv struct {
-	*Registry
+	*registry
 	addr string
 }
 
 func NewService(pemfile, addr string) (srv.Service, error) {
-	r, err := New(pemfile)
+	r, err := newreg(pemfile)
 	if err != nil {
 		return nil, err
 	}
 	return &RegistrySrv{
-		Registry: r,
+		registry: r,
 		addr:     addr,
 	}, nil
 }
@@ -33,18 +34,40 @@ func NewService(pemfile, addr string) (srv.Service, error) {
 //
 // Trainer name, password, age & gender are required.
 // Any other supplied fields will be ignored
-func (s *RegistrySrv) Register(context.Context, *pbf.Trainer) (*pbf.Response, error) { return nil, nil }
+func (s *RegistrySrv) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Response, error) {
+	err := s.add(in)
+	if err != nil {
+		return nil, err
+	}
+	u, err := s.get(in.Uid)
+	if err != nil {
+		return nil, err
+	}
+	msg := fmt.Sprintf("Registered %s with uid %s", u.Name, u.Uid)
+	return &pbf.Response{Msg: msg, Ok: true}, nil
+}
 
 // Get fetchs a trainer
 //
 // The populated fields will depend on the auth scope of the token
-func (s *RegistrySrv) Get(context.Context, *pbf.Trainer) (*pbf.Trainer, error) { return nil, nil }
+func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
+	u, err := s.get(in.Uid)
+	if err != nil {
+		return nil, err
+	}
+	u.Password = ""
+	return u, nil
+}
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
 //
 // HTTPS required w/ HTTP basic access authentication via a header
 // Authorization: Basic BASE64({user:pass})
-func (s *RegistrySrv) Enter(context.Context, *pbf.Trainer) (*pbf.Token, error) { return nil, nil }
+func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error) {
+	fmt.Println(ctx)
+	fmt.Println(in)
+	return s.authenticate(in)
+}
 
 // Certificate returns the cert used to verify token signatures
 //
