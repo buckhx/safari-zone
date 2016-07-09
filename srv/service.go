@@ -12,11 +12,6 @@ const (
 	DOCS_ROUTE  = "/docs/"
 )
 
-type Service interface {
-	Listen() error
-	Mux() (http.Handler, error)
-}
-
 type Gateway struct {
 	addr string
 	srvs []Service

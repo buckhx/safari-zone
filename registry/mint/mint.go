@@ -31,7 +31,7 @@ func NewEC256(owner string, pem []byte) (m *Mint, err error) {
 
 func (m *Mint) IssueToken(sub string, dur time.Duration, scope ...string) (string, error) {
 	now := time.Now()
-	claims := claims{
+	claims := Claims{
 		Scope: scope,
 		StandardClaims: jwt.StandardClaims{
 			Subject:   sub,
@@ -48,7 +48,7 @@ func (m *Mint) MarshalPublicJwk() ([]byte, error) {
 	return MarshalJwkJSON(m.owner, m.alg.Alg(), m.key.Public())
 }
 
-type claims struct {
+type Claims struct {
 	jwt.StandardClaims
 	Scope []string `json:"scope,omitempty"`
 }
