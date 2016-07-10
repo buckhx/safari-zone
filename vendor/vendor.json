@@ -66,6 +66,13 @@
 			"revisionTime": "2016-06-29T21:10:53Z"
 		},
 		{
+			"checksumSHA1": "PCZaIhNrohY6qno3Oo+lm6JbHYE=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/mwitkow/go-grpc-middleware",
+			"path": "github.com/mwitkow/go-grpc-middleware",
+			"revision": "203bdcbef20e33a385b05891cc45a038bb7cecbc",
+			"revisionTime": "2016-05-14T18:22:49Z"
+		},
+		{
 			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
 			"origin": "github.com/buckhx/safari-zone/vendor/golang.org/x/crypto/pbkdf2",
 			"path": "golang.org/x/crypto/pbkdf2",
@@ -99,6 +106,13 @@
 			"path": "golang.org/x/net/internal/timeseries",
 			"revision": "3e8a7b0329d536af18e227bb21b6da4d1dbbe180",
 			"revisionTime": "2016-03-29T01:55:07Z"
+		},
+		{
+			"checksumSHA1": "yhndhWXMs/VSEDLks4dNyFMQStA=",
+			"origin": "github.com/buckhx/safari-zone/vendor/golang.org/x/net/lex/httplex",
+			"path": "golang.org/x/net/lex/httplex",
+			"revision": "f841c39de738b1d0df95b5a7187744f0e03d8112",
+			"revisionTime": "2016-06-30T00:53:42Z"
 		},
 		{
 			"checksumSHA1": "dZJWvQmmWOwDkGPxJqoE8rN005w=",
