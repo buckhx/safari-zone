@@ -83,8 +83,18 @@ func (s *RegistrySrv) Listen() error {
 	if err != nil {
 		return err
 	}
-	opts := srv.Opts{Auth: srv.AuthOpts{CertURI: "dev/reg.pem"}}
-	rpc := srv.NewGRPC(opts)
+	opts := srv.Opts{
+		Auth: srv.AuthOpts{
+			CertURI: "dev/reg.pem",
+			UnsecuredMethods: []string{
+				"/buckhx.safari.registry.Registry/Certificate",
+			},
+		},
+	}
+	rpc, err := srv.NewGRPC(opts)
+	if err != nil {
+		return err
+	}
 	pbf.RegisterRegistryServer(rpc, s)
 	log.Printf("%T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)
