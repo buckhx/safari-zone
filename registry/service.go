@@ -83,7 +83,8 @@ func (s *RegistrySrv) Listen() error {
 	if err != nil {
 		return err
 	}
-	rpc := srv.NewGRPC(srv.Opts{})
+	opts := srv.Opts{Auth: srv.AuthOpts{CertURI: "dev/reg.pem"}}
+	rpc := srv.NewGRPC(opts)
 	pbf.RegisterRegistryServer(rpc, s)
 	log.Printf("%T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)

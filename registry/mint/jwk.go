@@ -12,16 +12,13 @@ import (
 	"gopkg.in/square/go-jose.v1"
 )
 
-func LoadECPrivateKey(pem []byte) (pk *ecdsa.PrivateKey, err error) {
-	k, err := jose.LoadPrivateKey(pem)
-	if err != nil {
-		return
+func LoadECPrivateKey(pem []byte) (*ecdsa.PrivateKey, error) {
+	//k, err := jose.LoadPrivateKey(pem)
+	block, _ := pemlib.Decode(pem)
+	if block == nil {
+		return nil, fmt.Errorf("No pem block")
 	}
-	pk, ok := k.(*ecdsa.PrivateKey)
-	if !ok {
-		err = fmt.Errorf("Key is not ecdsa")
-	}
-	return
+	return x509.ParseECPrivateKey(block.Bytes)
 }
 
 func GenES256Key() (pem []byte, err error) {
@@ -33,8 +30,9 @@ func GenES256Key() (pem []byte, err error) {
 	if err != nil {
 		return
 	}
-	buf := bytes.NewBuffer(pem)
+	buf := bytes.NewBuffer(nil)
 	err = pemlib.Encode(buf, &pemlib.Block{Type: "EC PRIVATE KEY", Bytes: der})
+	pem = buf.Bytes()
 	return
 }
 

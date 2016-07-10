@@ -1,15 +1,21 @@
 package srv
 
 import (
-	"context"
 	"crypto"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"os"
+	"strings"
 
 	"gopkg.in/square/go-jose.v1"
 
+	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/registry/mint"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mwitkow/go-grpc-middleware"
 
+	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
@@ -23,8 +29,63 @@ const (
 type AuthOpts struct {
 	// UnsecuredMethods are grpc method strings that skip authorization
 	UnsecuredMethods []string
-	// PublicJwkURI is the uri for the publc JWK that verifies access tokens
-	PublicJwkURI string
+	// CertURI is the uri for the publc JWK that verifies access tokens
+	CertURI string
+}
+
+func (o AuthOpts) fetchCert() (pub crypto.PublicKey, err error) {
+	switch {
+	case strings.HasPrefix(o.CertURI, "https"):
+		r, e := http.Get(o.CertURI)
+		if e != nil {
+			err = e
+			break
+		}
+		if r.StatusCode != http.StatusOK {
+			err = fmt.Errorf("CertURI not OK: %d", r.StatusCode)
+			break
+		}
+		defer r.Body.Close()
+		raw, e := ioutil.ReadAll(r.Body)
+		if e != nil {
+			err = e
+			break
+		}
+		var cert *pbf.Cert
+		if err = cert.Unmarshal(raw); err != nil {
+			break
+		}
+		var jwk *jose.JsonWebKey
+		if err = jwk.UnmarshalJSON(cert.Jwk); err != nil {
+			// jwk.Valid()
+			break
+		}
+		var ok bool
+		if pub, ok = jwk.Key.(crypto.PublicKey); !ok {
+			err = fmt.Errorf("JWK.Key not a crypto.PublicKey")
+		}
+	case strings.HasPrefix(o.CertURI, "http"):
+		err = fmt.Errorf("HTTPS required for network AuthOpts.CertURI")
+	case exists(o.CertURI):
+		f, e := os.Open(o.CertURI)
+		if e != nil {
+			err = e
+			break
+		}
+		raw, e := ioutil.ReadAll(f)
+		if e != nil {
+			err = e
+			break
+		}
+		if key, e := mint.LoadECPrivateKey(raw); e == nil {
+			pub = key.Public()
+		} else {
+			err = e
+		}
+	default:
+		err = fmt.Errorf("AuthOpts.CertURI must be a local file or HTTPS network resource")
+	}
+	return
 }
 
 // Authorizer verifies authorization for a RPC calls by intercepting request metadata
@@ -34,13 +95,10 @@ type Authorizer struct {
 }
 
 func NewAuthorizer(opts AuthOpts) (*Authorizer, error) {
-	raw := []byte{}
-	jwk := &jose.JsonWebKey{}
-	if err := jwk.UnmarshalJSON(raw); err != nil {
-		// jwk.Valid()
+	pub, err := opts.fetchCert()
+	if err != nil {
 		return nil, err
 	}
-	pub := jwk.Key.(crypto.PublicKey)
 	return &Authorizer{opts: opts, pub: pub}, nil
 }
 
@@ -109,4 +167,9 @@ func (a *Authorizer) skip(method string) (ok bool) {
 		}
 	}
 	return
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil
 }

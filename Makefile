@@ -4,6 +4,10 @@ clean:
 	rm -rf ./proto/pbf/*
 	rm -rf ./proto/docs/*
 
+eckey:
+	#openssl ecparam -out dev/reg.pem -name secp256k1 -genkey -noout
+	go run cmd/mint/cli.go > dev/reg.pem
+
 docs:
 	mkdir -p ./proto/docs
 	protoc -I /usr/local/include -I ./proto/ \

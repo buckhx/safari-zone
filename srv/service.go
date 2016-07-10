@@ -3,6 +3,8 @@ package srv
 import (
 	"net/http"
 
+	"github.com/mwitkow/go-grpc-middleware"
+
 	"google.golang.org/grpc"
 )
 
@@ -16,14 +18,14 @@ type Opts struct {
 }
 
 func NewGRPC(opts Opts) *grpc.Server {
-	return grpc.NewServer()
-	/*
-		auth := NewAuthorizer(opts.Auth)
-		stm_opts := []grpc.ServerOption{auth.StreamInterceptor()}
-		uni_opts := []grpc.ServerOption{auth.UnaryInterceptor()}
-		return grpc.NewServer(
-			grpc_middleware.WithStreamServerChain(stm_opts...),
-			grpc_middleware.WithUnaryServerChain(uni_tops...),
-		)
-	*/
+	auth, err := NewAuthorizer(opts.Auth)
+	if err != nil {
+		panic(err)
+	}
+	stm := []grpc.StreamServerInterceptor{auth.HandleStream}
+	uni := []grpc.UnaryServerInterceptor{auth.HandleUnary}
+	return grpc.NewServer(
+		grpc_middleware.WithStreamServerChain(stm...),
+		grpc_middleware.WithUnaryServerChain(uni...),
+	)
 }
