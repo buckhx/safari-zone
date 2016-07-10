@@ -64,8 +64,6 @@ func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, e
 // HTTPS required w/ HTTP basic access authentication via a header
 // Authorization: Basic BASE64({user:pass})
 func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error) {
-	fmt.Println(ctx)
-	fmt.Println(in)
 	return s.authenticate(in)
 }
 
@@ -85,7 +83,7 @@ func (s *RegistrySrv) Listen() error {
 	if err != nil {
 		return err
 	}
-	rpc := grpc.NewServer()
+	rpc := srv.NewGRPC(srv.Opts{})
 	pbf.RegisterRegistryServer(rpc, s)
 	log.Printf("%T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)

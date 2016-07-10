@@ -2,8 +2,10 @@ package srv
 
 import (
 	"context"
-	"crypto/ecdsa"
+	"crypto"
 	"fmt"
+
+	"gopkg.in/square/go-jose.v1"
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mwitkow/go-grpc-middleware"
@@ -17,14 +19,33 @@ const (
 	AUTH_HEADER = "Authorization"
 )
 
-// Authorizer verifies authorization for a RPC calls by intercepting request metadata
-type Authorizer struct {
-	pub       *ecdsa.PublicKey
-	whitelist []string
+// AuthOpts configures a Authorizer
+type AuthOpts struct {
+	// UnsecuredMethods are grpc method strings that skip authorization
+	UnsecuredMethods []string
+	// PublicJwkURI is the uri for the publc JWK that verifies access tokens
+	PublicJwkURI string
 }
 
-func (a *Authorizer) UnaryInterceptor(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
-	if a.whitelisted(info.FullMethod) {
+// Authorizer verifies authorization for a RPC calls by intercepting request metadata
+type Authorizer struct {
+	opts AuthOpts
+	pub  crypto.PublicKey
+}
+
+func NewAuthorizer(opts AuthOpts) (*Authorizer, error) {
+	raw := []byte{}
+	jwk := &jose.JsonWebKey{}
+	if err := jwk.UnmarshalJSON(raw); err != nil {
+		// jwk.Valid()
+		return nil, err
+	}
+	pub := jwk.Key.(crypto.PublicKey)
+	return &Authorizer{opts: opts, pub: pub}, nil
+}
+
+func (a *Authorizer) HandleUnary(ctx context.Context, req interface{}, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (interface{}, error) {
+	if a.skip(info.FullMethod) {
 		return handler(ctx, req)
 	}
 	ctx, err := a.ValidateContext(ctx)
@@ -34,8 +55,8 @@ func (a *Authorizer) UnaryInterceptor(ctx context.Context, req interface{}, info
 	return handler(ctx, req)
 }
 
-func (a *Authorizer) StreamingInterceptor(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
-	if a.whitelisted(info.FullMethod) {
+func (a *Authorizer) HandleStream(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error {
+	if a.skip(info.FullMethod) {
 		return handler(srv, stream)
 	}
 	wrap := grpc_middleware.WrapServerStream(stream)
@@ -48,8 +69,8 @@ func (a *Authorizer) StreamingInterceptor(srv interface{}, stream grpc.ServerStr
 	return handler(srv, stream)
 }
 
-// Check verifies a token string and returns a jwt.Token if valid
-func (a *Authorizer) Check(tok string) (*jwt.Token, error) {
+// Verify checks a token string and returns a jwt.Token if valid
+func (a *Authorizer) Verify(tok string) (*jwt.Token, error) {
 	if token, err := jwt.Parse(tok, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodECDSA); !ok {
 			return nil, fmt.Errorf("invalid token")
@@ -72,7 +93,7 @@ func (a *Authorizer) ValidateContext(ctx context.Context) (context.Context, erro
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required")
 	}
-	token, err := a.Check(tok[0])
+	token, err := a.Verify(tok[0])
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, err.Error())
 	}
@@ -80,9 +101,9 @@ func (a *Authorizer) ValidateContext(ctx context.Context) (context.Context, erro
 	return ctx, nil
 }
 
-// whitelisted checks if this method is in the whitelist (skips authorization)
-func (a *Authorizer) whitelisted(method string) (ok bool) {
-	for _, m := range a.whitelist {
+// skip checks if this method is in the whitelist (skips authorization)
+func (a *Authorizer) skip(method string) (ok bool) {
+	for _, m := range a.opts.UnsecuredMethods {
 		if m == method {
 			return true
 		}

@@ -13,6 +13,6 @@ const (
 )
 
 type Interceptor interface {
-	UnaryInterceptor(context.Context, interface{}, *grpc.UnaryServerInfo, grpc.UnaryHandler) (interface{}, error)
-	StreamingInterceptor(interface{}, grpc.ServerStream, *grpc.StreamServerInfo, grpc.StreamHandler) error
+	HandleUnary(context.Context, interface{}, *grpc.UnaryServerInfo, grpc.UnaryHandler) (interface{}, error)
+	HandleStream(interface{}, grpc.ServerStream, *grpc.StreamServerInfo, grpc.StreamHandler) error
 }
