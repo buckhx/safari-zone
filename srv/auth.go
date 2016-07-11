@@ -24,7 +24,7 @@ import (
 )
 
 const (
-	AUTH_HEADER   = "Authorization"
+	AUTH_HEADER   = "authorization"
 	BEARER_PREFIX = "Bearer "
 	BASIC_PREFIX  = "Basic "
 )
@@ -149,13 +149,13 @@ func (a *Authorizer) Verify(tok string) (*jwt.Token, error) {
 func (a *Authorizer) ValidateContext(ctx context.Context) (context.Context, error) {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
-		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required")
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: no context metadata")
 	}
 	payload, ok := md[AUTH_HEADER]
 	if !ok {
-		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required")
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing header")
 	}
-	tok := strings.TrimPrefix(BEARER_PREFIX, payload[0])
+	tok := strings.TrimPrefix(payload[0], BEARER_PREFIX)
 	token, err := a.Verify(tok)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, err.Error())

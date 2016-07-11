@@ -2,6 +2,7 @@ package util
 
 import (
 	"crypto/sha1"
+	"encoding/base64"
 	"fmt"
 	"os"
 
@@ -15,5 +16,5 @@ func Hash(k string) string {
 		fmt.Println("WARNING: SAFARI_SALT not set. Using DERP")
 		salt = []byte("DERP")
 	}
-	return string(pbkdf2.Key([]byte(k), salt, 4096, 32, sha1.New))
+	return base64.StdEncoding.EncodeToString(pbkdf2.Key([]byte(k), salt, 4096, 32, sha1.New))
 }

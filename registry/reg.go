@@ -89,7 +89,7 @@ func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
 	switch {
 	case err != nil:
 		break
-	case v.Password == util.Hash(req.Password):
+	case v.Password != util.Hash(req.Password):
 		err = fmt.Errorf("Invalid trainer: Password")
 	case !user{v}.hasScope(req.Scope...):
 		err = fmt.Errorf("Invalid trainer: Scope")

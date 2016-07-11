@@ -1,12 +1,16 @@
 package registry
 
 import (
+	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
+	"strings"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/srv"
@@ -62,8 +66,27 @@ func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, e
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
 //
 // HTTPS required w/ HTTP basic access authentication via a header
-// Authorization: Basic BASE64({user:pass})
+// Authorization: Basic BASE64({uid:pass})
 func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error) {
+	md, ok := metadata.FromContext(ctx)
+	if !ok {
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: no context metadata")
+	}
+	payload, ok := md[srv.AUTH_HEADER]
+	if !ok {
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing header")
+	}
+	creds := strings.TrimPrefix(payload[0], srv.BASIC_PREFIX)
+	if payload[0] == creds {
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing basic authorization method")
+	}
+	raw, err := base64.StdEncoding.DecodeString(creds)
+	kv := strings.Split(string(raw), ":")
+	fmt.Println(kv)
+	if err != nil || len(kv) != 2 || in.Uid != kv[0] {
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: invalid basic authorization payload")
+	}
+	in.Password = kv[1]
 	return s.authenticate(in)
 }
 
