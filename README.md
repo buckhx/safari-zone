@@ -18,3 +18,5 @@ A set of services demonstrating GRPC integration
 * openssl ecparam -out reg.pem -name secp256k1 -genkey (x509 lib can't read curve)
 * gateway should translate grpc codes -> HTTP codes (16 -> 404)
 * @authorize annotations in the proto would be awesome
+
+    OAK_KEY=$(curl -s "http://localhost:8080/registrysrv/v0/trainer/52fdfc07/auth" -H "Authorization: Basic NTJmZGZjMDc6c2FtK2RlbGlhNEVWRVI=" | jq --raw-output '.access')

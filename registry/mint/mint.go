@@ -48,6 +48,7 @@ func (m *Mint) MarshalPublicJwk() ([]byte, error) {
 	return MarshalJwkJSON(m.owner, m.alg.Alg(), m.key.Public())
 }
 
+//TODO move Claims to srv
 type Claims struct {
 	jwt.StandardClaims
 	Scope []string `json:"scope,omitempty"`

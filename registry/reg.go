@@ -3,6 +3,7 @@ package registry
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"regexp"
 	"strings"
 	"sync"
@@ -14,11 +15,12 @@ import (
 	"github.com/buckhx/safari-zone/util/kvc"
 )
 
-var validator = regexp.MustCompile(`^[a-zA-Z0-9]{3,32}$`)
+var validator = regexp.MustCompile(`^[a-zA-Z0-9+]{3,32}$`)
 
 const (
-	Issuer   = "buckhx.safari.registry"
-	TokenDur = 24 * time.Hour
+	Issuer    = "buckhx.safari.registry"
+	TokenDur  = 24 * time.Hour
+	ProfScope = "PROFESSOR"
 )
 
 type registry struct {
@@ -41,6 +43,7 @@ func newreg(pemfile string) (r *registry, err error) {
 		db:   kvc.NewMem(),
 		mint: m,
 	}
+	r.bootstrap()
 	return
 }
 
@@ -101,4 +104,28 @@ func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
 		tok = &pbf.Token{Access: sig, Scope: req.Scope}
 	}
 	return
+}
+
+// bootstrap hydrates the db with default data
+func (r *registry) bootstrap() {
+	adds := []*pbf.Trainer{
+		{
+			Name:     "oak",
+			Password: "sam+delia4EVER",
+			Age:      52,
+			Scope:    []string{ProfScope},
+		}, {
+			Name:     "ash",
+			Password: "THEverybest",
+			Age:      11,
+		},
+	}
+	for _, u := range adds {
+
+		if err := r.add(u); err != nil {
+			log.Printf("Could not bootstrap %s %s", u.Name, err)
+		} else {
+			log.Printf("Bootstrapped %T %s %s", u, u.Name, u.Uid)
+		}
+	}
 }

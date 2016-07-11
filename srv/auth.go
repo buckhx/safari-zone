@@ -12,7 +12,7 @@ import (
 	"gopkg.in/square/go-jose.v1"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
-	"github.com/buckhx/safari-zone/registry/mint"
+	"github.com/buckhx/safari-zone/registry/mint" //TOD rm this dep
 	"github.com/dgrijalva/jwt-go"
 	"github.com/mwitkow/go-grpc-middleware"
 
@@ -133,7 +133,7 @@ func (a *Authorizer) HandleStream(srv interface{}, stream grpc.ServerStream, inf
 
 // Verify checks a token string and returns a jwt.Token if valid
 func (a *Authorizer) Verify(tok string) (*jwt.Token, error) {
-	if token, err := jwt.Parse(tok, func(t *jwt.Token) (interface{}, error) {
+	if token, err := jwt.ParseWithClaims(tok, &mint.Claims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodECDSA); !ok {
 			return nil, fmt.Errorf("invalid token")
 		}

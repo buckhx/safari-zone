@@ -13,6 +13,7 @@ import (
 	"google.golang.org/grpc/metadata"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/registry/mint"
 	"github.com/buckhx/safari-zone/srv"
 	"github.com/gengo/grpc-gateway/runtime"
 	"golang.org/x/net/context"
@@ -55,6 +56,13 @@ func (s *RegistrySrv) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Respo
 //
 // The populated fields will depend on the auth scope of the token
 func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
+	claims := ctx.Value(srv.CtxClaims).(*mint.Claims)
+	fmt.Println(claims)
+	/*
+		if hasScope(claims["Scope"], ProfScope) && claims.Subject != in.Uid {
+			return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization")
+		}
+	*/
 	u, err := s.get(in.Uid)
 	if err != nil {
 		return nil, err
@@ -82,7 +90,6 @@ func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, e
 	}
 	raw, err := base64.StdEncoding.DecodeString(creds)
 	kv := strings.Split(string(raw), ":")
-	fmt.Println(kv)
 	if err != nil || len(kv) != 2 || in.Uid != kv[0] {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: invalid basic authorization payload")
 	}
