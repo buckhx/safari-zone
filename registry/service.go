@@ -88,6 +88,8 @@ func (s *RegistrySrv) Listen() error {
 			CertURI: "dev/reg.pem",
 			UnsecuredMethods: []string{
 				"/buckhx.safari.registry.Registry/Certificate",
+				"/buckhx.safari.registry.Registry/Register",
+				"/buckhx.safari.registry.Registry/Enter",
 			},
 		},
 	}
