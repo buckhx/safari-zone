@@ -2,6 +2,7 @@ package srv
 
 import (
 	"crypto"
+	"encoding/base64"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials"
 	"google.golang.org/grpc/metadata"
 )
 
@@ -167,6 +169,52 @@ func (a *Authorizer) skip(method string) (ok bool) {
 		}
 	}
 	return
+}
+
+type security int
+
+const (
+	public security = iota
+	access
+	basic
+)
+
+type creds struct {
+	payload  string
+	security security
+}
+
+// AccessCredentials generates grpc credentials based on the access token string
+func BasicCredentials(key, secret string) credentials.PerRPCCredentials {
+	payload := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s")))
+	return creds{payload: payload, security: basic}
+}
+
+// AccessCredentials generates grpc credentials based on the access token string
+func AccessCredentials(token string) credentials.PerRPCCredentials {
+	return creds{payload: token, security: access}
+}
+
+// EmptyCredentials generates grpc credentials that can be used to call unsecured methods such as authentication
+func PublicCredentials() credentials.PerRPCCredentials {
+	return creds{security: public}
+}
+
+func (c creds) GetRequestMetadata(ctx context.Context, uri ...string) (md map[string]string, err error) {
+	switch c.security {
+	case public:
+		break //TODO make sure md == nil is ok
+	case access:
+		md = map[string]string{AUTH_HEADER: fmt.Sprint("Bearer", c.payload)}
+	case basic:
+		md = map[string]string{AUTH_HEADER: fmt.Sprint("Basic", c.payload)}
+	default:
+		err = fmt.Errorf("Invalid Credentials Security")
+	}
+	return
+}
+func (c creds) RequireTransportSecurity() bool {
+	return false //TODO change
 }
 
 func exists(path string) bool {
