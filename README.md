@@ -1,6 +1,6 @@
-#Pokedex
+# Safari Zone
 
-A pokedex API
+A set of services demonstrating GRPC integration
 
 
 ## TODO
