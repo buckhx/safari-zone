@@ -24,7 +24,9 @@ import (
 )
 
 const (
-	AUTH_HEADER = "Authorization"
+	AUTH_HEADER   = "Authorization"
+	BEARER_PREFIX = "Bearer "
+	BASIC_PREFIX  = "Basic "
 )
 
 // AuthOpts configures a Authorizer
@@ -149,11 +151,12 @@ func (a *Authorizer) ValidateContext(ctx context.Context) (context.Context, erro
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required")
 	}
-	tok, ok := md[AUTH_HEADER]
+	payload, ok := md[AUTH_HEADER]
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required")
 	}
-	token, err := a.Verify(tok[0])
+	tok := strings.TrimPrefix(BEARER_PREFIX, payload[0])
+	token, err := a.Verify(tok)
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, err.Error())
 	}
@@ -205,9 +208,9 @@ func (c creds) GetRequestMetadata(ctx context.Context, uri ...string) (md map[st
 	case public:
 		break //TODO make sure md == nil is ok
 	case access:
-		md = map[string]string{AUTH_HEADER: fmt.Sprint("Bearer", c.payload)}
+		md = map[string]string{AUTH_HEADER: BEARER_PREFIX + c.payload}
 	case basic:
-		md = map[string]string{AUTH_HEADER: fmt.Sprint("Basic", c.payload)}
+		md = map[string]string{AUTH_HEADER: BASIC_PREFIX + c.payload}
 	default:
 		err = fmt.Errorf("Invalid Credentials Security")
 	}
