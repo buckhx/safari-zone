@@ -8,7 +8,7 @@ import (
 // GenUID generates a short 4-byte unique identifier
 func GenUID() (uuid string) {
 	u := RawUUID()
-	uuid = fmt.Sprintf("%X", u[0:4])
+	uuid = fmt.Sprintf("%x", u[0:4])
 	return
 }
 

@@ -5,7 +5,6 @@ import (
 	"io/ioutil"
 	"log"
 	"regexp"
-	"strings"
 	"sync"
 	"time"
 
@@ -76,7 +75,7 @@ func (r *registry) add(req *pbf.Trainer) (err error) {
 }
 
 func (r *registry) get(uid string) (*pbf.Trainer, error) {
-	v := r.db.Get(strings.ToUpper(uid))
+	v := r.db.Get(uid)
 	if v == nil {
 		return nil, fmt.Errorf("Invalid trainer: Not registered")
 	}
@@ -88,6 +87,7 @@ func (r *registry) get(uid string) (*pbf.Trainer, error) {
 }
 
 func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
+	fmt.Println(req.Scope)
 	v, err := r.get(req.Uid)
 	switch {
 	case err != nil:
