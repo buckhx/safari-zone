@@ -12,6 +12,7 @@ A set of services demonstrating GRPC integration
 
 * Logging Interceptor
 * Panic Revcovery Interceptor
+* Messaging
 
 ## Notes
 
