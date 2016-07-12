@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 )
 
 const (
@@ -35,8 +34,8 @@ func (gw Gateway) Serve() error {
 		if err != nil {
 			return err
 		}
-		t := strings.ToLower(strings.Split(fmt.Sprintf("%T", srv), ".")[1])
-		pre := fmt.Sprint("/", t, "/", API_VERSION)
+		//t := strings.ToLower(strings.Split(fmt.Sprintf("%T", srv), ".")[1])
+		pre := fmt.Sprint("/", srv.Name(), "/", srv.Version())
 		log.Printf("Registering service %T at %s", srv, pre)
 		r.Handle(pre+"/", http.StripPrefix(pre, h))
 	}

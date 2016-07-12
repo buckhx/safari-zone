@@ -35,6 +35,14 @@ func NewService(pemfile, addr string) (srv.Service, error) {
 	}, nil
 }
 
+func (s *RegistrySrv) Name() string {
+	return "registry"
+}
+
+func (s *RegistrySrv) Version() string {
+	return "v0"
+}
+
 // Register makes a creates a new trainer in the safari
 //
 // Trainer name, password, age & gender are required.
@@ -123,7 +131,7 @@ func (s *RegistrySrv) Listen() error {
 			},
 		},
 	}
-	rpc, err := srv.NewGRPC(opts)
+	rpc, err := srv.ConfigureGRPC(opts)
 	if err != nil {
 		return err
 	}

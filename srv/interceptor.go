@@ -1,14 +1,17 @@
 package srv
 
+import (
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+)
+
 type CtxKey int
 
 const (
 	CtxClaims = iota
 )
 
-/*
 type Interceptor interface {
-	UnaryHandler(context.Context, interface{}, *grpc.UnaryServerInfo, grpc.UnaryHandler) (interface{}, error)
-	StreamHandler() grpc.StreamServerInterceptor
+	HandleUnary(context.Context, interface{}, *grpc.UnaryServerInfo, grpc.UnaryHandler) (interface{}, error)
+	HandleStream(srv interface{}, stream grpc.ServerStream, info *grpc.StreamServerInfo, handler grpc.StreamHandler) error
 }
-*/

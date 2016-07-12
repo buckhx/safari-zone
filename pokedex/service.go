@@ -29,6 +29,14 @@ func NewService(addr string) (s srv.Service, err error) {
 	return
 }
 
+func (s *PokedexSrv) Name() string {
+	return "pokedex"
+}
+
+func (s *PokedexSrv) Version() string {
+	return "v0"
+}
+
 func (s *PokedexSrv) GetPokemon(ctx context.Context, req *pbf.Pokemon) (pc *pbf.Pokemon_Collection, err error) {
 	if p := s.ByNumber(int(req.Number)); p != nil {
 		pc = &pbf.Pokemon_Collection{
