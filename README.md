@@ -8,6 +8,10 @@ A set of services demonstrating GRPC integration
 * Busines logic
 * Containerize services
 
+## Not Implemented
+
+* Logging Interceptor
+* Panic Revcovery Interceptor
 
 ## Notes
 

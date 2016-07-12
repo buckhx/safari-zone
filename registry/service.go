@@ -134,7 +134,7 @@ func (s *RegistrySrv) Listen() error {
 		return err
 	}
 	pbf.RegisterRegistryServer(rpc, s)
-	log.Printf("%T listening at %s", s, s.addr)
+	log.Printf("Service %T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)
 }
 

@@ -54,7 +54,7 @@ func (s *PokedexSrv) Listen() error {
 	}
 	rpc := grpc.NewServer()
 	pbf.RegisterPokedexServer(rpc, s)
-	log.Printf("%T listening at %s", s, s.addr)
+	log.Printf("Service %T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)
 }
 
