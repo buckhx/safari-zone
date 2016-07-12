@@ -65,18 +65,16 @@ func (s *RegistrySrv) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Respo
 // The populated fields will depend on the auth scope of the token
 func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
 	claims := ctx.Value(srv.CtxClaims).(*mint.Claims)
-	fmt.Println(claims)
-	/*
-		if hasScope(claims["Scope"], ProfScope) && claims.Subject != in.Uid {
-			return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization")
+	fmt.Println(claims.Scope)
+	if claims.Subject == in.Uid || hasScope(claims.Scope, ProfScope) {
+		u, err := s.get(in.Uid)
+		if err != nil {
+			return nil, err
 		}
-	*/
-	u, err := s.get(in.Uid)
-	if err != nil {
-		return nil, err
+		u.Password = ""
+		return u, nil
 	}
-	u.Password = ""
-	return u, nil
+	return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization")
 }
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
