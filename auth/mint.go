@@ -1,4 +1,4 @@
-package mint
+package auth
 
 import (
 	"crypto/ecdsa"
@@ -16,7 +16,7 @@ type Mint struct {
 }
 
 // NewEC creates a new mint w/ a ES256 private key from a .pem file at the given path
-func NewEC256(owner string, pem []byte) (m *Mint, err error) {
+func NewEC256Mint(owner string, pem []byte) (m *Mint, err error) {
 	key, err := LoadECPrivateKey(pem)
 	if err != nil {
 		return
@@ -46,10 +46,4 @@ func (m *Mint) IssueToken(sub string, dur time.Duration, scope ...string) (strin
 
 func (m *Mint) MarshalPublicJwk() ([]byte, error) {
 	return MarshalJwkJSON(m.owner, m.alg.Alg(), m.key.Public())
-}
-
-//TODO move Claims to srv
-type Claims struct {
-	jwt.StandardClaims
-	Scope []string `json:"scope,omitempty"`
 }

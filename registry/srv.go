@@ -12,8 +12,8 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 
+	"github.com/buckhx/safari-zone/auth"
 	"github.com/buckhx/safari-zone/proto/pbf"
-	"github.com/buckhx/safari-zone/registry/mint"
 	"github.com/buckhx/safari-zone/srv"
 	"github.com/gengo/grpc-gateway/runtime"
 	"golang.org/x/net/context"
@@ -64,8 +64,10 @@ func (s *RegistrySrv) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Respo
 //
 // The populated fields will depend on the auth scope of the token
 func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
-	claims := ctx.Value(srv.CtxClaims).(*mint.Claims)
-	fmt.Println(claims.Scope)
+	claims, ok := auth.ClaimsFromContext(ctx)
+	if !ok {
+		return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization: missing claims")
+	}
 	if claims.Subject == in.Uid || hasScope(claims.Scope, ProfScope) {
 		u, err := s.get(in.Uid)
 		if err != nil {
@@ -78,6 +80,7 @@ func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, e
 }
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
+// TODO determine if the body of this method should move into the auth package
 //
 // HTTPS required w/ HTTP basic access authentication via a header
 // Authorization: Basic BASE64({uid:pass})
@@ -86,11 +89,11 @@ func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, e
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: no context metadata")
 	}
-	payload, ok := md[srv.AUTH_HEADER]
+	payload, ok := md[auth.AUTH_HEADER]
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing header")
 	}
-	creds := strings.TrimPrefix(payload[0], srv.BASIC_PREFIX)
+	creds := strings.TrimPrefix(payload[0], auth.BASIC_PREFIX)
 	if payload[0] == creds {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing basic authorization method")
 	}
@@ -120,7 +123,7 @@ func (s *RegistrySrv) Listen() error {
 		return err
 	}
 	opts := srv.Opts{
-		Auth: srv.AuthOpts{
+		Auth: auth.Opts{
 			CertURI: "dev/reg.pem",
 			UnsecuredMethods: []string{
 				"/buckhx.safari.registry.Registry/Certificate",

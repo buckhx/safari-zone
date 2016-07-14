@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
+	"github.com/buckhx/safari-zone/auth"
 	"github.com/buckhx/safari-zone/proto/pbf"
-	"github.com/buckhx/safari-zone/registry/mint"
 	"github.com/buckhx/safari-zone/util"
 	"github.com/buckhx/safari-zone/util/kvc"
 )
@@ -25,7 +25,7 @@ const (
 type registry struct {
 	sync.Mutex
 	db   kvc.KVC
-	mint *mint.Mint
+	mint *auth.Mint
 }
 
 // pem is the path to .pem private key used to sign tokens
@@ -34,7 +34,7 @@ func newreg(pemfile string) (r *registry, err error) {
 	if err != nil {
 		return
 	}
-	m, err := mint.NewEC256(Issuer, k)
+	m, err := auth.NewEC256Mint(Issuer, k)
 	if err != nil {
 		return
 	}

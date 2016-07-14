@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/buckhx/safari-zone/auth"
 	"github.com/mwitkow/go-grpc-middleware"
 
 	"google.golang.org/grpc"
@@ -17,16 +18,16 @@ type Service interface {
 }
 
 type Opts struct {
-	Auth AuthOpts
+	Auth auth.Opts
 }
 
 // ConfigureGRPC configures a GRPC Server w/ the given opts
 func ConfigureGRPC(opts Opts) (*grpc.Server, error) {
-	auth, err := NewAuthorizer(opts.Auth)
+	a, err := auth.NewAuthorizer(opts.Auth)
 	if err != nil {
 		return nil, err
 	}
-	return NewGRPC(auth), nil
+	return NewGRPC(a), nil
 }
 
 // NewGRPC builds a grpc.Server w/ the given inceptors registered in order

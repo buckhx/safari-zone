@@ -1,9 +1,9 @@
-package srv
+package auth
 
 import "testing"
 
 func TestFetchCert(t *testing.T) {
-	opts := AuthOpts{CertURI: "../dev/reg.pem"}
+	opts := Opts{CertURI: "../dev/reg.pem"}
 	c, err := opts.fetchCert()
 	if err != nil {
 		t.Errorf("ERR %s", err)
