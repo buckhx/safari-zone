@@ -55,7 +55,7 @@ func (a *Authorizer) HandleStream(srv interface{}, stream grpc.ServerStream, inf
 
 // Verify checks a token string and returns a jwt.Token if valid
 func (a *Authorizer) Verify(tok string) (*jwt.Token, error) {
-	if token, err := jwt.ParseWithClaims(tok, Claims{}, func(t *jwt.Token) (interface{}, error) {
+	if token, err := jwt.ParseWithClaims(tok, &Claims{}, func(t *jwt.Token) (interface{}, error) {
 		if _, ok := t.Method.(*jwt.SigningMethodECDSA); !ok {
 			return nil, fmt.Errorf("invalid token")
 		}
@@ -82,7 +82,7 @@ func (a *Authorizer) Context(ctx context.Context) (context.Context, error) {
 	if err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, err.Error())
 	}
-	ctx = token.Claims.(Claims).Context(ctx)
+	ctx = token.Claims.(*Claims).Context(ctx)
 	return ctx, nil
 }
 

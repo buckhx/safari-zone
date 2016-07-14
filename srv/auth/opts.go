@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -29,7 +30,8 @@ type Opts struct {
 
 func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 	switch {
-	case strings.HasPrefix(o.CertURI, "https"):
+	//case strings.HasPrefix(o.CertURI, "https"):
+	case strings.HasPrefix(o.CertURI, "http"):
 		r, e := http.Get(o.CertURI)
 		if e != nil {
 			err = e
@@ -45,11 +47,11 @@ func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 			err = e
 			break
 		}
-		var cert *pbf.Cert
-		if err = cert.Unmarshal(raw); err != nil {
+		cert := &pbf.Cert{}
+		if err = json.Unmarshal(raw, cert); err != nil {
 			break
 		}
-		var jwk *jose.JsonWebKey
+		jwk := &jose.JsonWebKey{}
 		if err = jwk.UnmarshalJSON(cert.Jwk); err != nil {
 			// jwk.Valid()
 			break
@@ -58,9 +60,9 @@ func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 		if pub, ok = jwk.Key.(crypto.PublicKey); !ok {
 			err = fmt.Errorf("JWK.Key not a crypto.PublicKey")
 		}
-	case strings.HasPrefix(o.CertURI, "http"):
+		//case strings.HasPrefix(o.CertURI, "http"):
 		// TODO verify that this is the correct behavior (HTTPS required to fetch cert)
-		err = fmt.Errorf("HTTPS required for network AuthOpts.CertURI")
+		//err = fmt.Errorf("HTTPS required for network AuthOpts.CertURI")
 	case exists(o.CertURI):
 		f, e := os.Open(o.CertURI)
 		if e != nil {

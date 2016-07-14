@@ -7,14 +7,17 @@ import (
 
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/srv"
+	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/gengo/grpc-gateway/runtime"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
 )
 
 type Service struct {
 	*Pokedex
 	addr string
+	opts srv.Opts
 }
 
 func NewService(addr string) (s srv.Service, err error) {
@@ -25,6 +28,11 @@ func NewService(addr string) (s srv.Service, err error) {
 	s = &Service{
 		Pokedex: pdx,
 		addr:    addr,
+		opts: srv.Opts{
+			Auth: auth.Opts{
+				CertURI: "http://localhost:8080/registry/v0/cert",
+			},
+		},
 	}
 	return
 }
@@ -38,11 +46,18 @@ func (s *Service) Version() string {
 }
 
 func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (pc *pbf.Pokemon_Collection, err error) {
+	pokes := newPokelist()
 	if p := s.ByNumber(int(req.Number)); p != nil {
-		pc = &pbf.Pokemon_Collection{
-			Pokemon: []*pbf.Pokemon{p},
+		claims, _ := auth.ClaimsFromContext(ctx)
+		if !claims.HasScope("PROFESSOR") { // or in users collection
+			p = unknown(p.Number)
 		}
+		pokes.Append(p)
 	}
+	if pokes.Empty() {
+		return nil, grpc.Errorf(codes.NotFound, "Pokemon not recognized")
+	}
+	pc = pokes.Pokemon_Collection
 	return
 }
 
@@ -52,7 +67,11 @@ func (s *Service) Listen() error {
 		log.Println(err)
 		return err
 	}
-	rpc := grpc.NewServer()
+	rpc, err := srv.ConfigureGRPC(s.opts)
+	if err != nil {
+		log.Println(err)
+		return err
+	}
 	pbf.RegisterPokedexServer(rpc, s)
 	log.Printf("Service %T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)
