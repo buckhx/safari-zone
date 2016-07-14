@@ -117,6 +117,11 @@ func (r *registry) bootstrap() {
 			Name:     "ash",
 			Password: "THEverybest",
 			Age:      11,
+			Pc: &pbf.Pokemon_Collection{
+				Pokemon: []*pbf.Pokemon{
+					{Number: 25}, //TODO fill this own},
+				},
+			},
 		},
 	}
 	for _, u := range adds {

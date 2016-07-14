@@ -14,10 +14,13 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
+const registryAddr = "localhost:50052" //TODO make this part of the opts
+
 type Service struct {
 	*Pokedex
 	addr string
 	opts srv.Opts
+	reg  pbf.RegistryClient
 }
 
 func NewService(addr string) (s srv.Service, err error) {
@@ -50,7 +53,18 @@ func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (pc *pbf.Pok
 	if p := s.ByNumber(int(req.Number)); p != nil {
 		claims, _ := auth.ClaimsFromContext(ctx)
 		if !claims.HasScope("PROFESSOR") { // or in users collection
-			p = unknown(p.Number)
+			f := unknown(p.Number)
+			u, err := s.reg.Get(ctx, &pbf.Trainer{Uid: claims.Subject})
+			if err != nil {
+				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered"+err.Error())
+			}
+			for _, poke := range u.Pc.Pokemon {
+				if poke.Number == req.Number {
+					f = p
+					break
+				}
+			}
+			p = f
 		}
 		pokes.Append(p)
 	}
@@ -73,6 +87,10 @@ func (s *Service) Listen() error {
 		return err
 	}
 	pbf.RegisterPokedexServer(rpc, s)
+	err = s.bindRegistry(registryAddr)
+	if err != nil {
+		return nil
+	}
 	log.Printf("Service %T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)
 }
@@ -89,4 +107,13 @@ func (s *Service) Mux() (http.Handler, error) {
 		mux = nil
 	}
 	return http.Handler(mux), err
+}
+
+func (s *Service) bindRegistry(addr string) error {
+	if conn, err := grpc.Dial(addr, grpc.WithInsecure()); err == nil {
+		s.reg = pbf.NewRegistryClient(conn)
+	} else {
+		return err
+	}
+	return nil
 }
