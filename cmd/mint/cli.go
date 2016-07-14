@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/buckhx/safari-zone/auth"
+	"github.com/buckhx/safari-zone/srv/auth"
 )
 
 func main() {

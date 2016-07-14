@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/buckhx/safari-zone/auth"
+	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/mwitkow/go-grpc-middleware"
 
 	"google.golang.org/grpc"

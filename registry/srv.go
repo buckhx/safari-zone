@@ -12,9 +12,9 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"
 
-	"github.com/buckhx/safari-zone/auth"
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/srv"
+	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/gengo/grpc-gateway/runtime"
 	"golang.org/x/net/context"
 )

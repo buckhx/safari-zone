@@ -8,8 +8,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/buckhx/safari-zone/auth"
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/buckhx/safari-zone/util"
 	"github.com/buckhx/safari-zone/util/kvc"
 )
