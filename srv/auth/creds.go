@@ -23,7 +23,7 @@ type creds struct {
 
 // AccessCredentials generates grpc credentials based on the access token string
 func BasicCredentials(key, secret string) credentials.PerRPCCredentials {
-	payload := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s")))
+	payload := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", key, secret)))
 	return creds{payload: payload, security: basic}
 }
 

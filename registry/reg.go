@@ -87,14 +87,13 @@ func (r *registry) get(uid string) (*pbf.Trainer, error) {
 }
 
 func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
-	fmt.Println(req.Scope)
 	v, err := r.get(req.Uid)
 	switch {
 	case err != nil:
 		break
 	case v.Password != util.Hash(req.Password):
 		err = fmt.Errorf("Invalid trainer: Password")
-	case !user{v}.hasScope(req.Scope...):
+	case !auth.Claims{Scope: v.Scope}.HasScope(req.Scope...):
 		err = fmt.Errorf("Invalid trainer: Scope")
 	}
 	if err != nil {

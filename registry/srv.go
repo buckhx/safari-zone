@@ -19,7 +19,7 @@ import (
 	"golang.org/x/net/context"
 )
 
-type RegistrySrv struct {
+type Service struct {
 	*registry
 	addr string
 }
@@ -29,17 +29,17 @@ func NewService(pemfile, addr string) (srv.Service, error) {
 	if err != nil {
 		return nil, err
 	}
-	return &RegistrySrv{
+	return &Service{
 		registry: r,
 		addr:     addr,
 	}, nil
 }
 
-func (s *RegistrySrv) Name() string {
+func (s *Service) Name() string {
 	return "registry"
 }
 
-func (s *RegistrySrv) Version() string {
+func (s *Service) Version() string {
 	return "v0"
 }
 
@@ -47,7 +47,7 @@ func (s *RegistrySrv) Version() string {
 //
 // Trainer name, password, age & gender are required.
 // Any other supplied fields will be ignored
-func (s *RegistrySrv) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Response, error) {
+func (s *Service) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Response, error) {
 	err := s.add(in)
 	if err != nil {
 		return nil, err
@@ -63,12 +63,12 @@ func (s *RegistrySrv) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Respo
 // Get fetchs a trainer
 //
 // The populated fields will depend on the auth scope of the token
-func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
+func (s *Service) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
 	claims, ok := auth.ClaimsFromContext(ctx)
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization: missing claims")
 	}
-	if claims.Subject == in.Uid || hasScope(claims.Scope, ProfScope) {
+	if claims.HasSubScope(in.Uid, ProfScope) {
 		u, err := s.get(in.Uid)
 		if err != nil {
 			return nil, err
@@ -84,7 +84,7 @@ func (s *RegistrySrv) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, e
 //
 // HTTPS required w/ HTTP basic access authentication via a header
 // Authorization: Basic BASE64({uid:pass})
-func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error) {
+func (s *Service) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error) {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: no context metadata")
@@ -109,7 +109,7 @@ func (s *RegistrySrv) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, e
 // Certificate returns the cert used to verify token signatures
 //
 // The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517
-func (s *RegistrySrv) Certificate(ctx context.Context, in *pbf.Trainer) (*pbf.Cert, error) {
+func (s *Service) Certificate(ctx context.Context, in *pbf.Trainer) (*pbf.Cert, error) {
 	jwk, err := s.mint.MarshalPublicJwk()
 	if err != nil {
 		return nil, err
@@ -117,7 +117,7 @@ func (s *RegistrySrv) Certificate(ctx context.Context, in *pbf.Trainer) (*pbf.Ce
 	return &pbf.Cert{Jwk: jwk}, nil
 }
 
-func (s *RegistrySrv) Listen() error {
+func (s *Service) Listen() error {
 	tcp, err := net.Listen("tcp", s.addr)
 	if err != nil {
 		return err
@@ -141,7 +141,7 @@ func (s *RegistrySrv) Listen() error {
 	return rpc.Serve(tcp)
 }
 
-func (s *RegistrySrv) Mux() (http.Handler, error) {
+func (s *Service) Mux() (http.Handler, error) {
 	ctx := context.Background()
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
