@@ -5,6 +5,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"time"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/registry"
@@ -54,7 +55,8 @@ func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, err
 	if req.Trainer.Uid != claims.Subject {
 		return nil, grpc.Errorf(codes.PermissionDenied, "Claims not scoped to requested trainer")
 	}
-	tkt, err := sf.issueTicket(req.Trainer, req.Zone, 10)
+	exp := &pbf.Ticket_Expiry{Time: time.Now().Add(10 * time.Minute).Unix(), Encounters: 25}
+	tkt, err := sf.issueTicket(req.Trainer, req.Zone, exp)
 	if err != nil {
 		err = grpc.Errorf(codes.AlreadyExists, err.Error())
 	}

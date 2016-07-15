@@ -29,14 +29,14 @@ message Ticket {
 }
 */
 
-func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry int64) (*pbf.Ticket, error) {
+func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Ticket_Expiry) (*pbf.Ticket, error) {
 	k := trainer.Uid
 	tkt := &pbf.Ticket{
 		Uid:     util.GenUID(),
 		Trainer: trainer,
 		Zone:    zone,
 		Time:    &pbf.Timestamp{Unix: time.Now().Unix()},
-		Expiry:  expiry,
+		Expires: expiry,
 	}
 	ok := g.tix.CompareAndSet(k, tkt, func() bool {
 		return !g.tix.(*kvc.MemKVC).UnsafeHas(k)

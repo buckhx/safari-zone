@@ -30,7 +30,11 @@ message Ticket {
 	registry.Trainer trainer = 2;
 	Zone zone = 3;
 	msg.Timestamp time = 4;
-	int64 expiry = 5;
+	Expiry expires = 5;
+	message Expiry {
+		int32 encounters = 1;
+		int64 time = 2;
+	}
 }
 
 message Action {
