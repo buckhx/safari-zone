@@ -5,12 +5,14 @@ import (
 
 	"github.com/buckhx/safari-zone/pokedex"
 	"github.com/buckhx/safari-zone/registry"
+	"github.com/buckhx/safari-zone/safari"
 	"github.com/buckhx/safari-zone/srv"
 )
 
 const (
 	pdxAddr = ":50051"
 	regAddr = ":50052"
+	sfrAddr = ":50053"
 	gwAddr  = ":8080"
 	pemfile = "dev/reg.pem"
 )
@@ -24,6 +26,10 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	sfr, err := safari.NewService(sfrAddr)
+	if err != nil {
+		log.Fatal(err)
+	}
 	go func() {
 		err := pdx.Listen()
 		log.Println(err)
@@ -32,7 +38,11 @@ func main() {
 		err := reg.Listen()
 		log.Println(err)
 	}()
-	gw := srv.NewGateway(gwAddr, pdx, reg)
+	go func() {
+		err := sfr.Listen()
+		log.Println(err)
+	}()
+	gw := srv.NewGateway(gwAddr, pdx, reg, sfr)
 	err = gw.Serve()
 	log.Fatal(err)
 }

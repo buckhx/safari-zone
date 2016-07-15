@@ -46,33 +46,33 @@ func newreg(pemfile string) (r *registry, err error) {
 	return
 }
 
-func (r *registry) add(req *pbf.Trainer) (err error) {
+func (r *registry) add(u *pbf.Trainer) (err error) {
 	switch {
-	case !validator.MatchString(req.Name):
+	case !validator.MatchString(u.Name):
 		err = fmt.Errorf("User name must match /%s/", validator)
-	case !validator.MatchString(req.Password):
+	case !validator.MatchString(u.Password):
 		err = fmt.Errorf("Password must match /%s/", validator)
-	case req.Age < 10:
+	case u.Age < 10:
 		err = fmt.Errorf("Trainer is too young!")
-	case req.Age > 99:
+	case u.Age > 99:
 		err = fmt.Errorf("Trainer is too old!")
 	}
 	if err != nil {
 		return
 	}
-	req.Password = util.Hash(req.Password)
-	req.Start = &pbf.Timestamp{Unix: time.Now().Unix()}
-	if req.Pc == nil {
-		req.Pc = &pbf.Pokemon_Collection{}
+	u.Password = util.Hash(u.Password)
+	u.Start = &pbf.Timestamp{Unix: time.Now().Unix()}
+	if u.Pc == nil {
+		u.Pc = &pbf.Pokemon_Collection{}
 	}
-	r.Lock() // for race w/ GenUID
-	defer r.Unlock()
-	uid := util.GenUID()
-	for r.db.Has(uid) {
-		uid = util.GenUID()
+	ok := false
+	for !ok { // make sure out short UID isn't taken
+		uid := util.GenUID()
+		u.Uid = uid
+		ok = r.db.CompareAndSet(uid, u, func() bool {
+			return !r.db.(*kvc.MemKVC).UnsafeHas(uid)
+		})
 	}
-	req.Uid = uid
-	r.db.Set(uid, req)
 	return
 }
 

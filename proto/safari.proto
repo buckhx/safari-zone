@@ -9,37 +9,47 @@ import "pokedex.proto";
 import "msg.proto";
 
 // Safari is a service that trainers join and catch pokemon on
-service Zone {
+service Safari {
 	// Encounter might add a pokemon to the event
 	//
 	// A pokemon will be added to the event and timestmap set if one is encountered
-	rpc Encounter (Event) returns (Event) {
+	rpc Enter (Ticket) returns (Ticket) {
 		option (google.api.http) = {
-			get: "/trainer/{trainer.uid}/region/{region.opt_code}"
+			get: "/trainer/{trainer.uid}/zone/{zone.opt_code}"
 		};
 	}
 
 	// Catch will attempt to catch the pokemon
 	//
 	// If caught, this pokemon will be deposited into the Trainer's PC
-	rpc Catch (Event) returns (msg.Response) {
-		option (google.api.http) = {
-			post: "/trainer/{trainer.uid}/pokemon/{pokemon.uid}"
-		};
+	rpc Encounter (stream Action) returns (stream BattleMessage) {}
+}
+
+message Ticket {
+	string uid = 1;
+	registry.Trainer trainer = 2;
+	Zone zone = 3;
+	msg.Timestamp time = 4;
+	int64 expiry = 5;
+}
+
+message Action {
+	oneof move {
+		string attack = 1;
+		string item = 2;
+		pokedex.Pokemon switch = 3;
+		bool run = 4;
 	}
 }
 
-message Event {
-	registry.Trainer trainer = 1;
-	pokedex.Pokemon pokemon = 2;
-	Region region = 3;
-	msg.Timestamp time = 4;
+message BattleMessage {
+	string msg = 1;
 }
 
-message Region {
-	Code code = 1;
-	int32 opt_code = 15;
-	enum Code {
+message Zone {
+	RegionCode region = 1;
+	int32 opt_code = 15; //enum not supported in HTTP request
+	enum RegionCode {
 		KANTO = 0;
 		JOHTO = 1;
 		HOENN = 2;

@@ -9,7 +9,7 @@
 		msg.proto
 		pokedex.proto
 		registry.proto
-		zone.proto
+		safari.proto
 
 	It has these top-level messages:
 		Timestamp
@@ -18,8 +18,10 @@
 		Trainer
 		Token
 		Cert
-		Event
-		Region
+		Ticket
+		Action
+		BattleMessage
+		Zone
 */
 package pbf
 

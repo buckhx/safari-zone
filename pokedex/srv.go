@@ -57,19 +57,19 @@ func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (*pbf.Pokemo
 	if p := s.ByNumber(int(num)); p != nil {
 		claims, _ := auth.ClaimsFromContext(ctx)
 		if !claims.HasScope(registry.ProfScope) { // check if user has pokemon number in PC
-			u, err := s.reg.GetTrainer(ctx, &pbf.Trainer{Uid: uid})
+			u, err := s.reg.GetTrainer(ctx, &pbf.Trainer{Uid: claims.Subject})
 			if err != nil {
 				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered "+err.Error())
 			}
 			if !(pokelist{u.Pc}).HasNumber(num) {
-				p = unknown(p.Num)
+				p = unknown(p.Number)
 			}
 		}
 		pokes.Append(p)
 	} else {
 		return nil, grpc.Errorf(codes.NotFound, "Pokemon not recognized")
 	}
-	return poke.Pokemon_Collection, nil
+	return pokes.Pokemon_Collection, nil
 }
 
 func (s *Service) Listen() error {

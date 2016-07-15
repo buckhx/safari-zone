@@ -18,6 +18,7 @@ type Service interface {
 }
 
 type Opts struct {
+	Addr string
 	Auth auth.Opts
 }
 

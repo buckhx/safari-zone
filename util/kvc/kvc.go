@@ -13,6 +13,7 @@ type KVC interface {
 	Has(Key) bool
 	Set(Key, Value)
 	SetTTL(Key, Value, time.Duration)
+	CompareAndSet(Key, Value, func() bool) bool
 }
 
 type MemKVC struct {
@@ -29,24 +30,19 @@ func NewMem() KVC {
 func (c *MemKVC) Get(k Key) Value {
 	c.RLock()
 	defer c.RUnlock()
-	return c.items[k]
+	return c.UnsafeGet(k)
 }
 
 func (c *MemKVC) Has(k Key) bool {
 	c.RLock()
 	defer c.RUnlock()
-	_, ok := c.items[k]
-	return ok
+	return c.UnsafeHas(k)
 }
 
 func (c *MemKVC) Set(k Key, v Value) {
 	c.Lock()
 	defer c.Unlock()
-	if v == nil {
-		delete(c.items, k)
-	} else {
-		c.items[k] = v
-	}
+	c.UnsafeSet(k, v)
 }
 
 func (c *MemKVC) SetTTL(k Key, v Value, ttl time.Duration) {
@@ -55,4 +51,33 @@ func (c *MemKVC) SetTTL(k Key, v Value, ttl time.Duration) {
 		c.Set(k, nil)
 	}()
 	c.Set(k, v)
+}
+
+// CompareAndSet sets the value if the cmp function returns true
+// Only Unsafe* method's should be used in the cmp func since they do not acquire locks
+func (c *MemKVC) CompareAndSet(k Key, v Value, cmp func() bool) bool {
+	c.Lock()
+	defer c.Unlock()
+	ok := cmp()
+	if ok {
+		c.UnsafeSet(k, v)
+	}
+	return ok
+}
+
+func (m *MemKVC) UnsafeGet(k Key) Value {
+	return m.items[k]
+}
+
+func (m *MemKVC) UnsafeHas(k Key) bool {
+	_, ok := m.items[k]
+	return ok
+}
+
+func (m *MemKVC) UnsafeSet(k Key, v Value) {
+	if v == nil {
+		delete(m.items, k)
+	} else {
+		m.items[k] = v
+	}
 }

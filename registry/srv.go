@@ -76,7 +76,7 @@ func (s *Service) GetTrainer(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer
 		u.Password = ""
 		return u, nil
 	}
-	return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization")
+	return nil, grpc.Errorf(codes.PermissionDenied, "Invalid Authorization")
 }
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
