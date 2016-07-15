@@ -14,6 +14,7 @@ import (
 	"google.golang.org/grpc"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/srv/auth"
 )
 
 const (
@@ -31,12 +32,12 @@ var (
 
 func main() {
 	scanner = bufio.NewScanner(os.Stdin)
-	pdx = pokedexClient()
 	reg = registryClient()
-	saf = safariClient()
 	say("Welcome to the Safary Zone!")
 	say("Please register to participate")
 	tok := register()
+	pdx = pokedexClient(tok)
+	saf = safariClient(tok)
 	say(tok)
 	_, _ = pdx, saf
 }
@@ -77,14 +78,19 @@ func register() string {
 			saywait("You're registered! Here's your trainer ID "+u.Msg, 500)
 		}
 	}
-	saywait("Now we're getting you a token so that you can enter one of the Safari Zones", 300)
-	say("Please enter your trainer ID from above to get your token")
-	uid := hear()
-	tok, err := reg.Enter(ctx, &pbf.Trainer{Uid: uid, Password: pass})
-	if err != nil {
-		fmt.Println(err)
+	saywait("Now we're getting you a token so that you can enter one of the Safari Zones", 500)
+	ok = false
+	for !ok {
+		say("Please enter your trainer ID from above to get your token")
+		uid := hear()
+		tok, err := reg.Enter(auth.AuthenticateContext(ctx, uid, pass), &pbf.Trainer{Uid: uid, Password: pass})
+		if err != nil {
+			say("Hmmm there was a problem %s . Let's try again", err)
+		} else {
+			return tok.Access
+		}
 	}
-	return tok.Access
+	return ""
 }
 
 func saywait(msg string, millis time.Duration) {
@@ -101,8 +107,8 @@ func hear() string {
 	return scanner.Text()
 }
 
-func pokedexClient() pbf.PokedexClient {
-	conn, err := grpc.Dial(pdxAddr, grpc.WithInsecure())
+func pokedexClient(tok string) pbf.PokedexClient {
+	conn, err := grpc.Dial(pdxAddr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth.AccessCredentials(tok)))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -117,8 +123,8 @@ func registryClient() pbf.RegistryClient {
 	return pbf.NewRegistryClient(conn)
 }
 
-func safariClient() pbf.SafariClient {
-	conn, err := grpc.Dial(sfrAddr, grpc.WithInsecure())
+func safariClient(tok string) pbf.SafariClient {
+	conn, err := grpc.Dial(sfrAddr, grpc.WithInsecure(), grpc.WithPerRPCCredentials(auth.AccessCredentials(tok)))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
