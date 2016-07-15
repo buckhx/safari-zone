@@ -1,12 +1,12 @@
 package pokedex
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/srv"
 	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/gengo/grpc-gateway/runtime"
@@ -49,32 +49,27 @@ func (s *Service) Version() string {
 	return "v0"
 }
 
-func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (pc *pbf.Pokemon_Collection, err error) {
+// GetPokemon fetchs the pokemon by number if the trainer has them in their PC
+// Professors know all about pokemon and can see details about every pokemon
+func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (*pbf.Pokemon_Collection, error) {
 	pokes := newPokelist()
-	if p := s.ByNumber(int(req.Number)); p != nil {
+	num := req.Number
+	if p := s.ByNumber(int(num)); p != nil {
 		claims, _ := auth.ClaimsFromContext(ctx)
-		if !claims.HasScope("PROFESSOR") { // or in users collection
-			f := unknown(p.Number)
-			u, err := s.reg.GetTrainer(ctx, &pbf.Trainer{Uid: claims.Subject})
+		if !claims.HasScope(registry.ProfScope) { // check if user has pokemon number in PC
+			u, err := s.reg.GetTrainer(ctx, &pbf.Trainer{Uid: uid})
 			if err != nil {
-				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered"+err.Error())
+				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered "+err.Error())
 			}
-			fmt.Println(u)
-			for _, poke := range u.Pc.Pokemon {
-				if poke.Number == p.Number {
-					f = p
-					break
-				}
+			if !(pokelist{u.Pc}).HasNumber(num) {
+				p = unknown(p.Num)
 			}
-			p = f
 		}
 		pokes.Append(p)
-	}
-	if pokes.Empty() {
+	} else {
 		return nil, grpc.Errorf(codes.NotFound, "Pokemon not recognized")
 	}
-	pc = pokes.Pokemon_Collection
-	return
+	return poke.Pokemon_Collection, nil
 }
 
 func (s *Service) Listen() error {
