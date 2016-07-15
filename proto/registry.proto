@@ -23,7 +23,7 @@ service Registry {
 	// Get fetchs a trainer
 	//
 	// The populated fields will depend on the auth scope of the token
-	rpc Get (Trainer) returns (Trainer) {
+	rpc GetTrainer (Trainer) returns (Trainer) {
 		option (google.api.http) = {
 			get: "/trainer/{uid}"
 		};

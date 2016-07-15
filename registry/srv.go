@@ -60,10 +60,10 @@ func (s *Service) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Response,
 	return &pbf.Response{Msg: msg, Ok: true}, nil
 }
 
-// Get fetchs a trainer
+// GetTrainer fetchs a trainer
 //
 // The populated fields will depend on the auth scope of the token
-func (s *Service) Get(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
+func (s *Service) GetTrainer(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
 	claims, ok := auth.ClaimsFromContext(ctx)
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization: missing claims")

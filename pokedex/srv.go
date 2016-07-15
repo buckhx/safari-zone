@@ -55,7 +55,7 @@ func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (pc *pbf.Pok
 		claims, _ := auth.ClaimsFromContext(ctx)
 		if !claims.HasScope("PROFESSOR") { // or in users collection
 			f := unknown(p.Number)
-			u, err := s.reg.Get(ctx, &pbf.Trainer{Uid: claims.Subject})
+			u, err := s.reg.GetTrainer(ctx, &pbf.Trainer{Uid: claims.Subject})
 			if err != nil {
 				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered"+err.Error())
 			}
