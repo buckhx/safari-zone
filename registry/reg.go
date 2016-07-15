@@ -62,7 +62,9 @@ func (r *registry) add(req *pbf.Trainer) (err error) {
 	}
 	req.Password = util.Hash(req.Password)
 	req.Start = &pbf.Timestamp{Unix: time.Now().Unix()}
-	req.Pc = &pbf.Pokemon_Collection{}
+	if req.Pc == nil {
+		req.Pc = &pbf.Pokemon_Collection{}
+	}
 	r.Lock() // for race w/ GenUID
 	defer r.Unlock()
 	uid := util.GenUID()
@@ -125,7 +127,6 @@ func (r *registry) bootstrap() {
 		},
 	}
 	for _, u := range adds {
-
 		if err := r.add(u); err != nil {
 			log.Printf("Could not bootstrap %s %s", u.Name, err)
 		} else {

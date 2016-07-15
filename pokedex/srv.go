@@ -1,6 +1,7 @@
 package pokedex
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -58,8 +59,9 @@ func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (pc *pbf.Pok
 			if err != nil {
 				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered"+err.Error())
 			}
+			fmt.Println(u)
 			for _, poke := range u.Pc.Pokemon {
-				if poke.Number == req.Number {
+				if poke.Number == p.Number {
 					f = p
 					break
 				}
