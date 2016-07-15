@@ -47,9 +47,9 @@ message BattleMessage {
 }
 
 message Zone {
-	RegionCode region = 1;
+	Code region = 1;
 	int32 opt_code = 15; //enum not supported in HTTP request
-	enum RegionCode {
+	enum Code {
 		KANTO = 0;
 		JOHTO = 1;
 		HOENN = 2;
