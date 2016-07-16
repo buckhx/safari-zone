@@ -39,6 +39,7 @@ func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Tic
 		Expires: expiry,
 	}
 	ok := g.tix.CompareAndSet(k, tkt, func() bool {
+		// TODO also set the expiry here
 		return !g.tix.(*kvc.MemKVC).UnsafeHas(k)
 	})
 	if !ok {
