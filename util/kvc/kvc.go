@@ -13,6 +13,7 @@ type KVC interface {
 	Has(Key) bool
 	Set(Key, Value)
 	SetTTL(Key, Value, time.Duration)
+	GetAndSet(Key, func(Value) Value)
 	CompareAndSet(Key, Value, func() bool) bool
 }
 
@@ -63,6 +64,14 @@ func (c *MemKVC) CompareAndSet(k Key, v Value, cmp func() bool) bool {
 		c.UnsafeSet(k, v)
 	}
 	return ok
+}
+
+func (c *MemKVC) GetAndSet(k Key, fn func(cur Value) Value) {
+	c.Lock()
+	defer c.Unlock()
+	cur := c.UnsafeGet(k)
+	v := fn(cur)
+	c.UnsafeSet(k, v)
 }
 
 func (m *MemKVC) UnsafeGet(k Key) Value {

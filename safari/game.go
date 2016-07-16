@@ -39,11 +39,21 @@ func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Tic
 		Expires: expiry,
 	}
 	ok := g.tix.CompareAndSet(k, tkt, func() bool {
-		// TODO also set the expiry here
-		return !g.tix.(*kvc.MemKVC).UnsafeHas(k)
+		if !g.tix.(*kvc.MemKVC).UnsafeHas(k) {
+			ttl := (tkt.Expires.Time - time.Now().Unix())
+			if ttl < 1 {
+				return false
+			}
+			go func() {
+				time.Sleep(ttl * time.Second)
+				c.Set(k, nil)
+			}()
+			return true
+		}
+		return false
 	})
 	if !ok {
-		return nil, fmt.Errorf("Ticket already issued for trainer %s", trainer.Uid)
+		return nil, fmt.Errorf("Error issuing ticket for trainer %s", trainer.Uid)
 	}
 	return tkt, nil
 }

@@ -57,11 +57,15 @@ func (sb *SafariBot) Run() {
 				break
 			}
 		}
-		fmt.Println("%+v", tkt)
+		sb.Play()
 		if !sb.yes("Want to play again?") {
 			break
 		}
 	}
+}
+
+func (sb *SafariBot) Play() {
+
 }
 
 func (sb *SafariBot) GetTicket() (*pbf.Ticket, error) {

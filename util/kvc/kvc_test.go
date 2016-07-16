@@ -16,6 +16,18 @@ func TestMemGetSet(t *testing.T) {
 	}
 }
 
+func TestMemGetAndSet(t *testing.T) {
+	k, v := "1", 1
+	c := kvc.NewMem()
+	c.Set(k, v)
+	c.GetAndSet(k, func(cur kvc.Value) kvc.Value {
+		return cur.(int) + 1
+	})
+	if c.Get(k) != 2 {
+		t.Errorf("GetAndSet")
+	}
+}
+
 func TestMemCmpSet(t *testing.T) {
 	k, v := 25, "25"
 	c := kvc.NewMem()
