@@ -185,6 +185,13 @@
 			"revisionTime": "2016-07-08T17:28:17Z"
 		},
 		{
+			"checksumSHA1": "cYBXYJpNqqnzN9LgjT1PTDvG8lM=",
+			"origin": "github.com/buckhx/safari-zone/vendor/gopkg.in/petname.v1",
+			"path": "gopkg.in/petname.v1",
+			"revision": "13f8b3a4326b9a6579358543cffe82713c1d6ce4",
+			"revisionTime": "2015-01-28T22:10:05Z"
+		},
+		{
 			"checksumSHA1": "LKz+OTCQIjRCae1xBcDR7Pa+DU0=",
 			"origin": "github.com/buckhx/safari-zone/vendor/gopkg.in/square/go-jose.v1",
 			"path": "gopkg.in/square/go-jose.v1",

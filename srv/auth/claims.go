@@ -1,6 +1,10 @@
 package auth
 
 import (
+	"encoding/json"
+	"fmt"
+	"strings"
+
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
 )
@@ -19,6 +23,25 @@ type Claims struct {
 func ClaimsFromContext(ctx context.Context) (Claims, bool) {
 	c, ok := ctx.Value(CtxClaims).(Claims)
 	return c, ok
+}
+
+// ClaimsFromToken reads the claims from a token string.
+// It DOES NOT verify the signature
+func ClaimsFromToken(token string) (c Claims, ok bool) {
+	blocks := strings.Split(token, ".")
+	if len(blocks) != 3 {
+		return
+	}
+	raw, err := decodeTokBlock(blocks[1])
+	if err != nil {
+		return
+	}
+	if err := json.Unmarshal(raw, &c); err == nil {
+		ok = true
+	} else {
+		fmt.Println(err)
+	}
+	return
 }
 
 func (c Claims) Context(ctx context.Context) context.Context {

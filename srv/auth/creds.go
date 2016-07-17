@@ -57,6 +57,9 @@ func (c creds) RequireTransportSecurity() bool {
 }
 
 func AuthorizeContext(ctx context.Context, token string) context.Context {
+	if claims, ok := ClaimsFromToken(token); ok {
+		ctx = claims.Context(ctx)
+	}
 	md := metadata.MD{AUTH_HEADER: []string{BEARER_PREFIX + token}}
 	return metadata.NewContext(ctx, md)
 }

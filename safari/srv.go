@@ -22,14 +22,13 @@ const registryAddr = "localhost:50052" //TODO make this part of the opts
 // Server API for Safari service
 type Service struct {
 	*game
-	*registry.SrvClient
+	reg  *registry.Client
 	opts srv.Opts
 }
 
 func NewService(addr string) (srv.Service, error) {
 	return &Service{
-		game:      newGame(),
-		SrvClient: registry.NewSrvClient(registryAddr),
+		game: newGame(),
 		opts: srv.Opts{
 			Addr: addr,
 			Auth: auth.Opts{
@@ -67,6 +66,9 @@ func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, err
 //
 // If caught, this pokemon will be deposited into the Trainer's PC
 func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
+	if err := stream.Send(&pbf.BattleMessage{Msg: "Hello!"}); err != nil {
+		return err
+	}
 	for {
 		in, err := stream.Recv()
 		switch {
@@ -78,7 +80,7 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 		var msg string
 		switch act := in.Move.(type) {
 		case *pbf.Action_Attack:
-			msg = "attacked with " + act.String()
+			msg = "attacked with " + act.Attack
 		case *pbf.Action_Item:
 			msg = "There's a time and place for everything!"
 		case *pbf.Action_Switch:
@@ -105,9 +107,8 @@ func (s *Service) Listen() error {
 		return err
 	}
 	pbf.RegisterSafariServer(rpc, s)
-	err = s.BindRegistry()
-	if err != nil {
-		return nil
+	if s.reg, err = registry.Dial(registryAddr); err != nil {
+		return err
 	}
 	log.Printf("Service %T listening at %s", s, s.opts.Addr)
 	return rpc.Serve(tcp)

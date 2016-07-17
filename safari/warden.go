@@ -1,6 +1,7 @@
 package safari
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -11,6 +12,7 @@ import (
 
 type game struct {
 	tix kvc.KVC
+	pdx pbf.PokedexClient
 }
 
 func newGame() *game {
@@ -18,16 +20,6 @@ func newGame() *game {
 		tix: kvc.NewMem(),
 	}
 }
-
-/*
-message Ticket {
-	string uid = 1;
-	registry.Trainer trainer = 2;
-	Zone zone = 3;
-	msg.Timestamp time = 4;
-	int64 expiration = 5;
-}
-*/
 
 func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Ticket_Expiry) (*pbf.Ticket, error) {
 	k := trainer.Uid
@@ -40,13 +32,13 @@ func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Tic
 	}
 	ok := g.tix.CompareAndSet(k, tkt, func() bool {
 		if !g.tix.(*kvc.MemKVC).UnsafeHas(k) {
-			ttl := (tkt.Expires.Time - time.Now().Unix())
+			ttl := time.Duration(tkt.Expires.Time - time.Now().Unix())
 			if ttl < 1 {
 				return false
 			}
 			go func() {
 				time.Sleep(ttl * time.Second)
-				c.Set(k, nil)
+				g.tix.Set(k, nil)
 			}()
 			return true
 		}
@@ -56,4 +48,17 @@ func (g *game) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Tic
 		return nil, fmt.Errorf("Error issuing ticket for trainer %s", trainer.Uid)
 	}
 	return tkt, nil
+}
+
+func (g *game) spawn(zone *pbf.Zone) (*pbf.Pokemon, error) {
+	ctx := context.Background()
+	num := int32(util.RandRng(0, 150))
+	pc, err := g.pdx.GetPokemon(ctx, &pbf.Pokemon{Number: num})
+	if err != nil {
+		return nil, err
+	}
+	poke := pc.Pokemon[0]
+	poke.Uid = util.GenUID()
+	poke.NickName = util.RandName()
+	return poke, nil
 }

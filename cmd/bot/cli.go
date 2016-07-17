@@ -9,6 +9,6 @@ const (
 )
 
 func main() {
-	bot := safaribot.NewSafariBot()
+	bot := safaribot.New()
 	bot.Run()
 }

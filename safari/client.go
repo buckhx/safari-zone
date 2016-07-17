@@ -1,4 +1,4 @@
-package registry
+package safari
 
 import (
 	"github.com/buckhx/safari-zone/proto/pbf"
@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	pbf.RegistryClient
+	pbf.SafariClient
 	*grpc.ClientConn
 	addr string
 }
@@ -21,11 +21,10 @@ func Dial(addr string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	cli := pbf.NewRegistryClient(conn)
+	cli := pbf.NewSafariClient(conn)
 	return &Client{
-		RegistryClient: cli,
-		ClientConn:     conn,
-		addr:           addr,
-		//tok:            tok,
+		SafariClient: cli,
+		ClientConn:   conn,
+		addr:         addr,
 	}, nil
 }
