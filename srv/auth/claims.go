@@ -2,7 +2,6 @@ package auth
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
 	"github.com/dgrijalva/jwt-go"
@@ -38,8 +37,6 @@ func ClaimsFromToken(token string) (c Claims, ok bool) {
 	}
 	if err := json.Unmarshal(raw, &c); err == nil {
 		ok = true
-	} else {
-		fmt.Println(err)
 	}
 	return
 }

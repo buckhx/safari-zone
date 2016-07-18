@@ -1,6 +1,7 @@
 package safari
 
 import (
+	"fmt"
 	"io"
 	"log"
 	"net"
@@ -17,18 +18,21 @@ import (
 	"google.golang.org/grpc/codes"
 )
 
-const registryAddr = "localhost:50052" //TODO make this part of the opts
+const (
+	registryAddr = "localhost:50052" //TODO make this part of the opts
+	pdxAddr      = "localhost:50051" //TODO make this part of the opts
+)
 
 // Server API for Safari service
 type Service struct {
-	*game
+	*warden
 	reg  *registry.Client
 	opts srv.Opts
 }
 
 func NewService(addr string) (srv.Service, error) {
 	return &Service{
-		game: newGame(),
+		warden: newGame(),
 		opts: srv.Opts{
 			Addr: addr,
 			Auth: auth.Opts{
@@ -54,6 +58,9 @@ func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, err
 	if req.Trainer.Uid != claims.Subject {
 		return nil, grpc.Errorf(codes.PermissionDenied, "Claims not scoped to requested trainer")
 	}
+	if tkt, ok := sf.tix.Get(claims.Subject).(*pbf.Ticket); ok && tkt != nil { //TODO move this to the warden
+		return tkt, nil
+	}
 	exp := &pbf.Ticket_Expiry{Time: time.Now().Add(10 * time.Minute).Unix(), Encounters: 25}
 	tkt, err := sf.issueTicket(req.Trainer, req.Zone, exp)
 	if err != nil {
@@ -66,7 +73,12 @@ func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, err
 //
 // If caught, this pokemon will be deposited into the Trainer's PC
 func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
-	if err := stream.Send(&pbf.BattleMessage{Msg: "Hello!"}); err != nil {
+	pok, err := sf.spawn(stream.Context())
+	if err != nil {
+		return err
+	}
+	msg := fmt.Sprintf("A wild %s was encountered!", pok.Name)
+	if err := stream.Send(&pbf.BattleMessage{Msg: msg}); err != nil {
 		return err
 	}
 	for {
@@ -110,15 +122,19 @@ func (s *Service) Listen() error {
 	if s.reg, err = registry.Dial(registryAddr); err != nil {
 		return err
 	}
+	if tok, err := s.reg.Access(s.ctx, &pbf.Token{Key: "buckhx.safari.zone", Secret: "zone-secret"}); err == nil {
+		s.ctx = auth.AuthorizeContext(s.ctx, tok.Access)
+	} else {
+		return err
+	}
 	log.Printf("Service %T listening at %s", s, s.opts.Addr)
 	return rpc.Serve(tcp)
 }
 
 func (s *Service) Mux() (http.Handler, error) {
-	ctx := context.Background()
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterSafariHandlerFromEndpoint(ctx, mux, s.opts.Addr, opts)
+	err := pbf.RegisterSafariHandlerFromEndpoint(s.ctx, mux, s.opts.Addr, opts)
 	if err != nil {
 		mux = nil
 	}

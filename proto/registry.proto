@@ -39,6 +39,15 @@ service Registry {
 		};
 	}
 
+	// Access retrieves an access token from a token's key/secret combo
+	//
+	// HTTPS required. Only key/secret will be honored
+	rpc Access (Token) returns (Token) {
+		option (google.api.http) = {
+			get: "/access"
+		};
+	}
+
 	// Certificate returns the cert used to verify token signatures
 	//
 	// The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517
@@ -67,7 +76,9 @@ message Trainer {
 
 message Token {
 	string access = 1;
-	repeated string scope = 2;
+	string key = 2;
+	string secret = 3;
+	repeated string scope = 4;
 }
 
 message Cert {

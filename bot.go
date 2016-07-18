@@ -72,8 +72,10 @@ func (b *SafariBot) Run() error {
 		b.Register()
 	}
 	b.SignIn()
+	var tkt *pbf.Ticket
 	for {
-		tkt, err := b.GetTicket()
+		var err error
+		tkt, err = b.GetTicket()
 		if err != nil {
 			b.say("We couldn't get you a ticket for that region %s", err)
 			if !b.yes("Want to try a different region?") {
@@ -82,8 +84,13 @@ func (b *SafariBot) Run() error {
 				break
 			}
 		}
-		b.Encounter(tkt)
-		if !b.yes("Want to play again?") {
+		break
+	}
+	for {
+		if err := b.Encounter(tkt); err != nil {
+			return err
+		}
+		if !b.yes("Continue walking around?") {
 			break
 		}
 	}
@@ -91,6 +98,8 @@ func (b *SafariBot) Run() error {
 }
 
 func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
+	clms, ok := auth.ClaimsFromContext(b.ctx)
+	fmt.Printf("%s - %t\n", clms, ok)
 	enc, err := b.saf.Encounter(b.ctx)
 	if err != nil {
 		return err
@@ -137,25 +146,27 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 	}
 }
 
-func (b *SafariBot) GetTicket() (*pbf.Ticket, error) {
-	var zone *pbf.Zone
+func (b *SafariBot) GetTicket() (tkt *pbf.Ticket, err error) {
+	tid, ok := b.GetTrainerID()
+	if !ok {
+		err = fmt.Errorf("Unable to get trainer ID from token")
+		return
+	}
 	for {
 		b.say("Which region would you like to participate in? (Enter 0-6)")
-		zc, err := strconv.Atoi(b.hear())
+		var zc int
+		zc, err = strconv.Atoi(b.hear())
 		if err != nil || zc < 0 || zc > 6 {
 			b.say("That wasn't a valid region code. How about another?")
 			continue
 		}
-		zone = &pbf.Zone{Region: pbf.Zone_Code(zc)}
+		zone := &pbf.Zone{Region: pbf.Zone_Code(zc)}
 		if b.yes("You'd like to visit %s?", zone.Region) {
+			tkt, err = b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: &pbf.Trainer{Uid: tid}, Zone: zone})
 			break
 		}
 	}
-	tid, ok := b.GetTrainerID()
-	if !ok {
-		return nil, fmt.Errorf("Unable to get trainer ID from token")
-	}
-	return b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: &pbf.Trainer{Uid: tid}, Zone: zone})
+	return
 }
 
 func (b *SafariBot) Greet() (seen bool) {
@@ -207,7 +218,7 @@ func (b *SafariBot) Register() {
 	}
 }
 
-func (b *SafariBot) SignIn() (token string) {
+func (b *SafariBot) SignIn() {
 	b.say("Now let's sign you in to get your token to enter different regions")
 	for {
 		b.say("Please enter your trainer ID")
@@ -223,7 +234,6 @@ func (b *SafariBot) SignIn() (token string) {
 		break
 	}
 	b.say("Awesome! Now we've got your token.\nYou can enter different regions for the next 24 hours before you need a new one.")
-	return
 }
 
 func (b *SafariBot) GetTrainerID() (string, bool) {

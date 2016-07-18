@@ -106,6 +106,15 @@ func (s *Service) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error
 	return s.authenticate(in)
 }
 
+// Enter authenticates a user to retrieve a an access token to authorize requests for a safari
+// TODO figure out if BasicAuth should be used
+//
+// HTTPS required w/ HTTP basic access authentication via a header
+// Authorization: Basic BASE64({uid:pass})
+func (s *Service) Access(ctx context.Context, tok *pbf.Token) (*pbf.Token, error) {
+	return s.access(tok)
+}
+
 // Certificate returns the cert used to verify token signatures
 //
 // The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517
@@ -128,6 +137,7 @@ func (s *Service) Listen() error {
 			UnsecuredMethods: []string{
 				"/buckhx.safari.registry.Registry/Certificate",
 				"/buckhx.safari.registry.Registry/Register",
+				"/buckhx.safari.registry.Registry/Access",
 				"/buckhx.safari.registry.Registry/Enter",
 			},
 		},

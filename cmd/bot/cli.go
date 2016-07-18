@@ -1,6 +1,10 @@
 package main
 
-import "github.com/buckhx/safari-zone"
+import (
+	"log"
+
+	"github.com/buckhx/safari-zone"
+)
 
 const (
 	pdxAddr = "localhost:50051"
@@ -10,5 +14,7 @@ const (
 
 func main() {
 	bot := safaribot.New()
-	bot.Run()
+	if err := bot.Run(); err != nil {
+		log.Fatal(err)
+	}
 }

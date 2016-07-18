@@ -24,7 +24,8 @@ const (
 
 type registry struct {
 	sync.Mutex
-	db   kvc.KVC
+	usrs kvc.KVC
+	svcs kvc.KVC
 	mint *auth.Mint
 }
 
@@ -39,7 +40,8 @@ func newreg(pemfile string) (r *registry, err error) {
 		return
 	}
 	r = &registry{
-		db:   kvc.NewMem(),
+		usrs: kvc.NewMem(),
+		svcs: kvc.NewMem(),
 		mint: m,
 	}
 	r.bootstrap()
@@ -69,15 +71,15 @@ func (r *registry) add(u *pbf.Trainer) (err error) {
 	for !ok { // make sure out short UID isn't taken
 		uid := util.GenUID()
 		u.Uid = uid
-		ok = r.db.CompareAndSet(uid, u, func() bool {
-			return !r.db.(*kvc.MemKVC).UnsafeHas(uid)
+		ok = r.usrs.CompareAndSet(uid, u, func() bool {
+			return !r.usrs.(*kvc.MemKVC).UnsafeHas(uid)
 		})
 	}
 	return
 }
 
 func (r *registry) get(uid string) (*pbf.Trainer, error) {
-	v := r.db.Get(uid)
+	v := r.usrs.Get(uid)
 	if v == nil {
 		return nil, fmt.Errorf("Invalid trainer: Not registered")
 	}
@@ -107,6 +109,27 @@ func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
 	return
 }
 
+func (r *registry) access(req *pbf.Token) (tok *pbf.Token, err error) {
+	v, ok := r.svcs.Get(req.Key).(string)
+	switch {
+	case !ok:
+		err = fmt.Errorf("%s invalid token key/secret", req.Key)
+	case v != util.Hash(req.Secret):
+		err = fmt.Errorf("%s invalid token key/secret", req.Key)
+	}
+	if err != nil {
+		return
+	}
+	scope := []string{"svc"}
+	if sig, err := r.mint.IssueToken(req.Key, TokenDur, scope...); err == nil {
+		req.Access = sig
+		req.Secret = ""
+		req.Scope = scope
+		tok = req
+	}
+	return
+}
+
 // bootstrap hydrates the db with default data
 func (r *registry) bootstrap() {
 	adds := []*pbf.Trainer{
@@ -132,5 +155,14 @@ func (r *registry) bootstrap() {
 		} else {
 			log.Printf("Bootstrapped %T %s %s", u, u.Name, u.Uid)
 		}
+	}
+	svcs := []struct {
+		key, secret string
+	}{
+		{key: "buckhx.safari.pokedex", secret: util.Hash("pokedex-secret")},
+		{key: "buckhx.safari.zone", secret: util.Hash("zone-secret")},
+	}
+	for _, svc := range svcs {
+		r.svcs.Set(svc.key, svc.secret)
 	}
 }
