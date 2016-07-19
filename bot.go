@@ -50,27 +50,14 @@ func New() *SafariBot {
 	}
 }
 
-func (b *SafariBot) Connect() (err error) {
-	if b.reg, err = registry.Dial(regAddr); err != nil {
-		return
-	}
-	if b.saf, err = safari.Dial(safAddr); err != nil {
-		return
-	}
-	return
-}
-
-func (b *SafariBot) Connected() bool {
-	return b.reg != nil || b.saf != nil
-}
-
 func (b *SafariBot) Run() error {
+	seen := b.Greet()
 	if !b.Connected() {
+		defer b.Close()
 		if err := b.Connect(); err != nil {
 			return err
 		}
 	}
-	seen := b.Greet()
 	if !seen {
 		b.Register()
 	}
@@ -106,14 +93,35 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 	if err != nil {
 		return fmt.Errorf(grpc.ErrorDesc(err))
 	}
-	if msg, err := stream.Recv(); err == nil {
-		b.say(msg.Msg)
-	} else {
-		return err
-	}
 	defer stream.CloseSend()
-	for {
+	done := make(chan error)
+	msgs := make(chan *pbf.BattleMessage)
+	go func() {
+		defer close(msgs)
+		defer close(done)
 		for {
+			msg, err := stream.Recv()
+			switch {
+			case msg.Status != pbf.OK:
+				b.say(msg.Msg)
+				done <- nil
+			case err == io.EOF:
+				done <- nil
+			case err != nil:
+				done <- err
+			default:
+				b.say(msg.Msg)
+				msgs <- msg
+				continue
+			}
+			return
+		}
+	}()
+	for {
+		select {
+		case err := <-done:
+			return err
+		case <-msgs:
 			b.say("What's your move? (ball, rock, bait, run)")
 			var a *pbf.Action
 			switch strings.Split(strings.ToLower(b.hear()), " ")[0] {
@@ -139,17 +147,7 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 			if err := stream.Send(a); err != nil {
 				return err
 			}
-			break
 		}
-		//TODO goroutine for recv
-		msg, err := stream.Recv()
-		if err == io.EOF {
-			return nil
-		}
-		if err != nil {
-			return err
-		}
-		b.say(msg.Msg)
 	}
 }
 
@@ -252,6 +250,27 @@ func (b *SafariBot) GetTrainerID() (string, bool) {
 		return claims.Subject, true
 	}
 	return "", false
+}
+
+func (b *SafariBot) Connect() (err error) {
+	if b.reg, err = registry.Dial(regAddr); err != nil {
+		return
+	}
+	if b.saf, err = safari.Dial(safAddr); err != nil {
+		return
+	}
+	return
+}
+
+func (b *SafariBot) Close() {
+	b.reg.Close()
+	b.saf.Close()
+	b.reg = nil
+	b.saf = nil
+}
+
+func (b *SafariBot) Connected() bool {
+	return b.reg != nil || b.saf != nil
 }
 
 func (b *SafariBot) say(format string, v ...interface{}) {

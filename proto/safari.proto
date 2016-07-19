@@ -48,6 +48,12 @@ message Action {
 
 message BattleMessage {
 	string msg = 1;
+	Status status = 2;
+	enum Status {
+		OK = 0;
+		DONE = 1;
+		ERROR = 2;
+	}
 }
 
 message Zone {

@@ -99,7 +99,7 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 			msg = "Now's not the time for that!"
 		case *pbf.Action_Run:
 			msg := "Got away safely!"
-			return stream.Send(&pbf.BattleMessage{Msg: msg})
+			return stream.Send(&pbf.BattleMessage{Msg: msg, Status: pbf.DONE})
 		default:
 			msg = "waiting..."
 		}
