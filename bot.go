@@ -108,10 +108,11 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 	} else {
 		return err
 	}
+	defer stream.CloseSend()
 	for {
-		var a *pbf.Action
 		for {
 			b.say("What's your move? (ball, rock, bait, run)")
+			var a *pbf.Action
 			switch strings.Split(strings.ToLower(b.hear()), " ")[0] {
 			case "ball":
 				a = &pbf.Action{Move: &pbf.Action_Attack{"safari-ball"}}
@@ -132,14 +133,14 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 				b.say("There's no time for that!")
 				continue
 			}
+			if err := stream.Send(a); err != nil {
+				return err
+			}
 			break
 		}
-		if err := stream.Send(a); err != nil {
-			return err
-		}
+		//TODO goroutine for recv
 		msg, err := stream.Recv()
 		if err == io.EOF {
-			stream.CloseSend()
 			return nil
 		}
 		if err != nil {
