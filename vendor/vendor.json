@@ -52,6 +52,13 @@
 			"revisionTime": "2016-06-15T08:08:17Z"
 		},
 		{
+			"checksumSHA1": "49VitEtRavVyu4akwG7bCJYHD0E=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/gizak/termui",
+			"path": "github.com/gizak/termui",
+			"revision": "202925a536c7febe22698792a2b6de68edb2726d",
+			"revisionTime": "2016-07-11T14:51:34Z"
+		},
+		{
 			"checksumSHA1": "iZVulPMFFGC70xeLZJafiKzTn18=",
 			"origin": "github.com/buckhx/safari-zone/vendor/github.com/gogo/protobuf/proto",
 			"path": "github.com/gogo/protobuf/proto",
@@ -94,11 +101,32 @@
 			"revisionTime": "2015-12-11T00:06:21Z"
 		},
 		{
+			"checksumSHA1": "DdH3xAkzAWJ4B/LGYJyCeRsly2I=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/mattn/go-runewidth",
+			"path": "github.com/mattn/go-runewidth",
+			"revision": "d6bea18f789704b5f83375793155289da36a3c7f",
+			"revisionTime": "2016-03-15T04:07:12Z"
+		},
+		{
+			"checksumSHA1": "L3leymg2RT8hFl5uL+5KP/LpBkg=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/mitchellh/go-wordwrap",
+			"path": "github.com/mitchellh/go-wordwrap",
+			"revision": "ad45545899c7b13c020ea92b2072220eefad42b8",
+			"revisionTime": "2015-03-14T17:03:34Z"
+		},
+		{
 			"checksumSHA1": "PCZaIhNrohY6qno3Oo+lm6JbHYE=",
 			"origin": "github.com/buckhx/safari-zone/vendor/github.com/mwitkow/go-grpc-middleware",
 			"path": "github.com/mwitkow/go-grpc-middleware",
 			"revision": "203bdcbef20e33a385b05891cc45a038bb7cecbc",
 			"revisionTime": "2016-05-14T18:22:49Z"
+		},
+		{
+			"checksumSHA1": "ymd32uFjzdvI2g1f1RiDc2eebUc=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/nsf/termbox-go",
+			"path": "github.com/nsf/termbox-go",
+			"revision": "0723e7c3d0a317dea811f0fbe4d6edd81908c971",
+			"revisionTime": "2016-07-18T14:06:19Z"
 		},
 		{
 			"checksumSHA1": "1MGpGDQqnUoRpv7VEcQrXOBydXE=",
