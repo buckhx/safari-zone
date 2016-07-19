@@ -9,6 +9,8 @@ import (
 	"strings"
 	"time"
 
+	"google.golang.org/grpc"
+
 	"golang.org/x/net/context"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
@@ -95,13 +97,14 @@ func (b *SafariBot) Run() error {
 			break
 		}
 	}
+	b.say("Thanks for playing!\nCome back soon!")
 	return nil
 }
 
 func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 	stream, err := b.saf.Encounter(b.ctx)
 	if err != nil {
-		return err
+		return fmt.Errorf(grpc.ErrorDesc(err))
 	}
 	if msg, err := stream.Recv(); err == nil {
 		b.say(msg.Msg)
@@ -167,6 +170,9 @@ func (b *SafariBot) GetTicket() (tkt *pbf.Ticket, err error) {
 		zone := &pbf.Zone{Region: pbf.Zone_Code(zc)}
 		if b.yes("You'd like to visit %s?", zone.Region) {
 			tkt, err = b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: &pbf.Trainer{Uid: tid}, Zone: zone})
+			if err != nil {
+				err = fmt.Errorf(grpc.ErrorDesc(err))
+			}
 			break
 		}
 	}
@@ -174,6 +180,7 @@ func (b *SafariBot) GetTicket() (tkt *pbf.Ticket, err error) {
 }
 
 func (b *SafariBot) Greet() (seen bool) {
+	b.say(banner)
 	b.say("Welcome to the Safari Zone!")
 	return b.yes("Have you visited before?")
 }
@@ -213,7 +220,7 @@ func (b *SafariBot) Register() {
 		b.say("Registering...")
 		u, err := b.reg.Register(b.ctx, &pbf.Trainer{Name: name, Password: pass, Age: age, Gender: gdr})
 		if err != nil {
-			b.say("There was a problem with your registration: %q\nLet's start from the top.", err)
+			b.say("There was a problem with your registration %q\nLet's start from the top.", grpc.ErrorDesc(err))
 			continue
 		}
 		b.say("Great! Here's your trainer ID %s", strings.ToLower(u.Msg))
@@ -223,7 +230,7 @@ func (b *SafariBot) Register() {
 }
 
 func (b *SafariBot) SignIn() {
-	b.say("Now let's sign you in to get your token to enter different regions")
+	b.say("Let's sign you in to get your token to enter different regions")
 	for {
 		b.say("Please enter your trainer ID")
 		uid := b.hear()
@@ -231,7 +238,7 @@ func (b *SafariBot) SignIn() {
 		pass := b.hear()
 		tok, err := b.reg.Enter(auth.AuthenticateContext(b.ctx, uid, pass), &pbf.Trainer{Uid: uid, Password: pass})
 		if err != nil {
-			b.say("Hmmm there was a problem %s . Let's try again", err)
+			b.say("Hmmm there was a problem %q. Let's try again", grpc.ErrorDesc(err))
 			continue
 		}
 		b.ctx = auth.AuthorizeContext(b.ctx, tok.Access)
@@ -252,7 +259,9 @@ func (b *SafariBot) say(format string, v ...interface{}) {
 }
 
 func (b *SafariBot) hear() string {
+	fmt.Print("> ")
 	b.scanner.Scan()
+	fmt.Println("")
 	return b.scanner.Text()
 }
 
@@ -274,3 +283,13 @@ func saywait(msg string, millis time.Duration) {
 	fmt.Println(msg)
 	time.Sleep(millis * time.Millisecond)
 }
+
+var banner = `
+   _____        __           _ ______                
+  / ____|      / _|         (_)___  /                
+ | (___   __ _| |_ __ _ _ __ _   / / ___  _ __   ___ 
+  \___ \ / _' |  _/ _' | '__| | / / / _ \| '_ \ / _ \
+  ____) | (_| | || (_| | |  | |/ /_| (_) | | | |  __/
+ |_____/ \__,_|_| \__,_|_|  |_/_____\___/|_| |_|\___|
+                                                     
+                                                     `
