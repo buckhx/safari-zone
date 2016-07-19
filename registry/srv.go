@@ -1,16 +1,13 @@
 package registry
 
 import (
-	"encoding/base64"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
-	"strings"
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/metadata"
 
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/srv"
@@ -71,12 +68,12 @@ func (s *Service) GetTrainer(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer
 	if claims.HasSubScope(in.Uid, ProfScope) {
 		u, err := s.get(in.Uid)
 		if err != nil {
-			return nil, err
+			return nil, grpc.Errorf(codes.NotFound, "Trainer Not Found: %s", err)
 		}
 		u.Password = ""
 		return u, nil
 	}
-	return nil, grpc.Errorf(codes.PermissionDenied, "Invalid Authorization")
+	return nil, grpc.Errorf(codes.PermissionDenied, "Invalid Scope")
 }
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
@@ -85,34 +82,31 @@ func (s *Service) GetTrainer(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer
 // HTTPS required w/ HTTP basic access authentication via a header
 // Authorization: Basic BASE64({uid:pass})
 func (s *Service) Enter(ctx context.Context, in *pbf.Trainer) (*pbf.Token, error) {
-	md, ok := metadata.FromContext(ctx)
-	if !ok {
-		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: no context metadata")
+	key, pass, err := auth.GetBasicCredentials(ctx)
+	if key != in.Uid {
+		err = fmt.Errorf("user creds did not match request")
 	}
-	payload, ok := md[auth.AUTH_HEADER]
-	if !ok {
-		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing header")
+	if err != nil {
+		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization Error: %s", err)
 	}
-	creds := strings.TrimPrefix(payload[0], auth.BASIC_PREFIX)
-	if payload[0] == creds {
-		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing basic authorization method")
+	in.Password = pass
+	tok, err := s.authenticate(in)
+	if err != nil {
+		err = grpc.Errorf(codes.Unauthenticated, "Authorization Error: %s", err)
 	}
-	raw, err := base64.StdEncoding.DecodeString(creds)
-	kv := strings.Split(string(raw), ":")
-	if err != nil || len(kv) != 2 || in.Uid != kv[0] {
-		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: invalid basic authorization payload")
-	}
-	in.Password = kv[1]
-	return s.authenticate(in)
+	return tok, err
 }
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari
 // TODO figure out if BasicAuth should be used
 //
-// HTTPS required w/ HTTP basic access authentication via a header
-// Authorization: Basic BASE64({uid:pass})
+// body must contain key & secret keys
 func (s *Service) Access(ctx context.Context, tok *pbf.Token) (*pbf.Token, error) {
-	return s.access(tok)
+	access, err := s.access(tok)
+	if err != nil {
+		err = grpc.Errorf(codes.Unauthenticated, "Authorization Error: %s", err)
+	}
+	return access, err
 }
 
 // Certificate returns the cert used to verify token signatures

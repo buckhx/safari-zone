@@ -23,7 +23,6 @@ func TestGenKey(t *testing.T) {
 	if err != nil {
 		t.Error(err)
 	}
-	fmt.Println(string(der))
 	pem := bytes.NewBuffer(nil)
 	pemlib.Encode(pem, &pemlib.Block{Type: "EC PRIVATE KEY", Bytes: der})
 	ikey, err := jose.LoadPrivateKey(pem.Bytes())
@@ -38,8 +37,7 @@ func TestGenKey(t *testing.T) {
 		Algorithm: string(jose.ES256),
 		Use:       "sig",
 	}
-	o, _ := jwk.MarshalJSON()
-	fmt.Println(string(o))
+	_, _ = jwk.MarshalJSON()
 	/*
 
 		fmt.Println(string(buf.Bytes()))

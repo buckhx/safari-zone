@@ -17,9 +17,10 @@ import (
 var validator = regexp.MustCompile(`^[a-zA-Z0-9+]{3,32}$`)
 
 const (
-	Issuer    = "buckhx.safari.registry"
-	TokenDur  = 24 * time.Hour
-	ProfScope = "PROFESSOR"
+	Issuer       = "buckhx.safari.registry"
+	TokenDur     = 24 * time.Hour
+	ProfScope    = "role:prof"
+	ServiceScope = "role:svc"
 )
 
 type registry struct {
@@ -81,10 +82,10 @@ func (r *registry) add(u *pbf.Trainer) (err error) {
 func (r *registry) get(uid string) (*pbf.Trainer, error) {
 	v := r.usrs.Get(uid)
 	if v == nil {
-		return nil, fmt.Errorf("Invalid trainer: Not registered")
+		return nil, fmt.Errorf("not registered")
 	}
 	if u, ok := v.(*pbf.Trainer); !ok {
-		return nil, fmt.Errorf("Internal error: DB Assertion")
+		return nil, fmt.Errorf("db assertion")
 	} else {
 		return u, nil
 	}
@@ -96,9 +97,9 @@ func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
 	case err != nil:
 		break
 	case v.Password != util.Hash(req.Password):
-		err = fmt.Errorf("Invalid trainer: Password")
+		err = fmt.Errorf("invalid login credentials")
 	case !auth.Claims{Scope: v.Scope}.HasScope(req.Scope...):
-		err = fmt.Errorf("Invalid trainer: Scope")
+		err = fmt.Errorf("invalid scope")
 	}
 	if err != nil {
 		return
@@ -120,7 +121,7 @@ func (r *registry) access(req *pbf.Token) (tok *pbf.Token, err error) {
 	if err != nil {
 		return
 	}
-	scope := []string{"svc"}
+	scope := []string{ServiceScope}
 	if sig, err := r.mint.IssueToken(req.Key, TokenDur, scope...); err == nil {
 		req.Access = sig
 		req.Secret = ""

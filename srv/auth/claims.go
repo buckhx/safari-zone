@@ -4,14 +4,10 @@ import (
 	"encoding/json"
 	"strings"
 
+	"google.golang.org/grpc/metadata"
+
 	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/net/context"
-)
-
-type CtxKey int
-
-const (
-	CtxClaims = iota
 )
 
 type Claims struct {
@@ -20,8 +16,16 @@ type Claims struct {
 }
 
 func ClaimsFromContext(ctx context.Context) (Claims, bool) {
-	c, ok := ctx.Value(CtxClaims).(Claims)
-	return c, ok
+	md, ok := metadata.FromContext(ctx)
+	if !ok {
+		return Claims{}, false
+	}
+	hd, ok := md[AUTH_HEADER]
+	if !ok {
+		return Claims{}, false
+	}
+	tok := strings.TrimPrefix(hd[0], BEARER_PREFIX)
+	return ClaimsFromToken(tok)
 }
 
 // ClaimsFromToken reads the claims from a token string.
@@ -39,10 +43,6 @@ func ClaimsFromToken(token string) (c Claims, ok bool) {
 		ok = true
 	}
 	return
-}
-
-func (c Claims) Context(ctx context.Context) context.Context {
-	return context.WithValue(ctx, CtxClaims, c)
 }
 
 // HasSubScope checks if the scope is in these claims OR if the subject is matchec
@@ -66,4 +66,16 @@ func (c Claims) HasScope(scp ...string) bool {
 		}
 	}
 	return ok
+}
+
+// HasRole checks if any of these roles are in the claims
+func (c Claims) HasRole(roles ...string) bool {
+	for _, role := range roles {
+		for _, scp := range c.Scope {
+			if scp == role {
+				return true
+			}
+		}
+	}
+	return false
 }

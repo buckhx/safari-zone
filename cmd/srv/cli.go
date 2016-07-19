@@ -18,11 +18,15 @@ const (
 )
 
 func main() {
-	pdx, err := pokedex.NewService(pdxAddr)
+	reg, err := registry.NewService(pemfile, regAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
-	reg, err := registry.NewService(pemfile, regAddr)
+	go func() {
+		err := reg.Listen()
+		log.Println(err)
+	}()
+	pdx, err := pokedex.NewService(pdxAddr)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -32,10 +36,6 @@ func main() {
 	}
 	go func() {
 		err := pdx.Listen()
-		log.Println(err)
-	}()
-	go func() {
-		err := reg.Listen()
 		log.Println(err)
 	}()
 	go func() {

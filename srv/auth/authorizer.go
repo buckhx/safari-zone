@@ -68,6 +68,7 @@ func (a *Authorizer) Verify(tok string) (*jwt.Token, error) {
 }
 
 // Context validates the context's authorization params and populates claims if there is no error
+// TODO rename to validate and rm returned ctx
 func (a *Authorizer) Context(ctx context.Context) (context.Context, error) {
 	md, ok := metadata.FromContext(ctx)
 	if !ok {
@@ -78,11 +79,10 @@ func (a *Authorizer) Context(ctx context.Context) (context.Context, error) {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Authorization required: missing header")
 	}
 	tok := strings.TrimPrefix(payload[0], BEARER_PREFIX)
-	token, err := a.Verify(tok)
-	if err != nil {
+	if _, err := a.Verify(tok); err != nil {
 		return nil, grpc.Errorf(codes.Unauthenticated, err.Error())
 	}
-	ctx = token.Claims.(*Claims).Context(ctx)
+	//ctx = token.Claims.(*Claims).Context(ctx)
 	return ctx, nil
 }
 

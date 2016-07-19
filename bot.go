@@ -3,6 +3,7 @@ package safaribot
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -98,13 +99,11 @@ func (b *SafariBot) Run() error {
 }
 
 func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
-	clms, ok := auth.ClaimsFromContext(b.ctx)
-	fmt.Printf("%s - %t\n", clms, ok)
-	enc, err := b.saf.Encounter(b.ctx)
+	stream, err := b.saf.Encounter(b.ctx)
 	if err != nil {
 		return err
 	}
-	if msg, err := enc.Recv(); err == nil {
+	if msg, err := stream.Recv(); err == nil {
 		b.say(msg.Msg)
 	} else {
 		return err
@@ -135,10 +134,14 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 			}
 			break
 		}
-		if err := enc.Send(a); err != nil {
+		if err := stream.Send(a); err != nil {
 			return err
 		}
-		msg, err := enc.Recv()
+		msg, err := stream.Recv()
+		if err == io.EOF {
+			stream.CloseSend()
+			return nil
+		}
 		if err != nil {
 			return err
 		}

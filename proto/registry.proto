@@ -42,9 +42,11 @@ service Registry {
 	// Access retrieves an access token from a token's key/secret combo
 	//
 	// HTTPS required. Only key/secret will be honored
+	// Authorization: Basic BASE64({key:secret})
 	rpc Access (Token) returns (Token) {
 		option (google.api.http) = {
-			get: "/access"
+			post: "/access"
+			body: "*"
 		};
 	}
 

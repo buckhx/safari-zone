@@ -1,32 +1,40 @@
 package safari
 
 import (
-	"context"
 	"fmt"
 	"time"
 
+	"golang.org/x/net/context"
+
 	"github.com/buckhx/safari-zone/pokedex"
 	"github.com/buckhx/safari-zone/proto/pbf"
+	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/buckhx/safari-zone/util"
 	"github.com/buckhx/safari-zone/util/kvc"
 )
 
 type warden struct {
-	tix kvc.KVC
-	pdx pbf.PokedexClient
-	ctx context.Context
+	tix    kvc.KVC
+	pdx    pbf.PokedexClient
+	ctx    context.Context
+	access string
 }
 
 func newGame() *warden {
-	pdx, err := pokedex.Dial(pdxAddr, "")
+	tok, err := registry.FetchAccessToken(registryAddr, "buckhx.safari.zone", "zone-secret")
+	if err != nil {
+		panic(err)
+	}
+	pdx, err := pokedex.Dial(pdxAddr, tok)
 	if err != nil {
 		panic(err)
 	}
 	return &warden{
-		tix: kvc.NewMem(),
-		pdx: pdx,
-		ctx: context.Background(),
+		tix:    kvc.NewMem(),
+		pdx:    pdx,
+		access: tok,
+		ctx:    context.Background(),
 	}
 }
 
@@ -59,8 +67,6 @@ func (w *warden) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.T
 }
 
 func (w *warden) spawn(ctx context.Context) (*pbf.Pokemon, error) {
-	clms, ok := auth.ClaimsFromContext(ctx)
-	fmt.Printf("%s - %t\n", clms, ok)
 	claims, ok := auth.ClaimsFromContext(ctx)
 	if !ok {
 		return nil, fmt.Errorf("Ticket can't be identified")
@@ -78,13 +84,20 @@ func (w *warden) spawn(ctx context.Context) (*pbf.Pokemon, error) {
 	if tkt == nil {
 		return nil, fmt.Errorf("Ticket has expired")
 	}
-	num := int32(util.RandRng(0, 150)) //TODO set on tkt zone
-	pc, err := w.pdx.GetPokemon(ctx, &pbf.Pokemon{Number: num})
+	num := util.RandRng(0, 150) //TODO set on tkt zone
+	poke, err := w.fetchPokemon(num)
+	if err == nil {
+		poke.Uid = util.GenUID()
+		poke.NickName = util.RandName()
+	}
+	return poke, err
+}
+
+func (w *warden) fetchPokemon(num int) (*pbf.Pokemon, error) {
+	pc, err := w.pdx.GetPokemon(w.ctx, &pbf.Pokemon{Number: int32(num)})
 	if err != nil {
 		return nil, err
 	}
-	poke := pc.Pokemon[0]
-	poke.Uid = util.GenUID()
-	poke.NickName = util.RandName()
-	return poke, nil
+	return pc.Pokemon[0], nil
+
 }

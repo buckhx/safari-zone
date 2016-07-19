@@ -119,14 +119,6 @@ func (s *Service) Listen() error {
 		return err
 	}
 	pbf.RegisterSafariServer(rpc, s)
-	if s.reg, err = registry.Dial(registryAddr); err != nil {
-		return err
-	}
-	if tok, err := s.reg.Access(s.ctx, &pbf.Token{Key: "buckhx.safari.zone", Secret: "zone-secret"}); err == nil {
-		s.ctx = auth.AuthorizeContext(s.ctx, tok.Access)
-	} else {
-		return err
-	}
 	log.Printf("Service %T listening at %s", s, s.opts.Addr)
 	return rpc.Serve(tcp)
 }

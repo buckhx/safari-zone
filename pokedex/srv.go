@@ -56,10 +56,11 @@ func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (*pbf.Pokemo
 	num := req.Number
 	if p := s.ByNumber(int(num)); p != nil {
 		claims, _ := auth.ClaimsFromContext(ctx)
-		if !claims.HasScope(registry.ProfScope) { // check if user has pokemon number in PC
+		if !claims.HasRole(registry.ProfScope, registry.ServiceScope) {
+			// check if user has pokemon number in PC
 			u, err := s.reg.GetTrainer(ctx, &pbf.Trainer{Uid: claims.Subject})
 			if err != nil {
-				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered "+err.Error())
+				return nil, grpc.Errorf(codes.NotFound, "Trainer not registered %s", err)
 			}
 			if !(pokelist{u.Pc}).HasNumber(num) {
 				p = unknown(p.Number)

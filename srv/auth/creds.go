@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/base64"
 	"fmt"
+	"strings"
 
 	"golang.org/x/net/context"
 	"google.golang.org/grpc/credentials"
@@ -57,9 +58,6 @@ func (c creds) RequireTransportSecurity() bool {
 }
 
 func AuthorizeContext(ctx context.Context, token string) context.Context {
-	if claims, ok := ClaimsFromToken(token); ok {
-		ctx = claims.Context(ctx)
-	}
 	md := metadata.MD{AUTH_HEADER: []string{BEARER_PREFIX + token}}
 	return metadata.NewContext(ctx, md)
 }
@@ -68,4 +66,31 @@ func AuthenticateContext(ctx context.Context, key, secret string) context.Contex
 	payload := base64.StdEncoding.EncodeToString([]byte(fmt.Sprintf("%s:%s", key, secret)))
 	md := metadata.MD{AUTH_HEADER: []string{BASIC_PREFIX + payload}}
 	return metadata.NewContext(ctx, md)
+}
+
+func GetBasicCredentials(ctx context.Context) (key, secret string, err error) {
+	md, ok := metadata.FromContext(ctx)
+	if !ok {
+		err = fmt.Errorf("no context metadata")
+		return
+	}
+	payload, ok := md[AUTH_HEADER]
+	if !ok {
+		err = fmt.Errorf("missing auth header")
+		return
+	}
+	creds := strings.TrimPrefix(payload[0], BASIC_PREFIX)
+	if payload[0] == creds {
+		err = fmt.Errorf("missing basic authorization")
+		return
+	}
+	raw, err := base64.StdEncoding.DecodeString(creds)
+	kv := strings.Split(string(raw), ":")
+	if err != nil || len(kv) != 2 {
+		err = fmt.Errorf("invalid basic authorization payload")
+		return
+	}
+	key = kv[0]
+	secret = kv[1]
+	return
 }
