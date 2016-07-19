@@ -3,7 +3,6 @@ package safaribot
 import (
 	"bufio"
 	"fmt"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -13,6 +12,7 @@ import (
 
 	"golang.org/x/net/context"
 
+	"github.com/briandowns/spinner"
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/safari"
@@ -51,13 +51,8 @@ func New() *SafariBot {
 }
 
 func (b *SafariBot) Run() error {
+	defer b.Close()
 	seen := b.Greet()
-	if !b.Connected() {
-		defer b.Close()
-		if err := b.Connect(); err != nil {
-			return err
-		}
-	}
 	if !seen {
 		b.Register()
 	}
@@ -102,13 +97,13 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 		for {
 			msg, err := stream.Recv()
 			switch {
+			case err != nil:
+				// treat EOF as a normal error
+				// should have fotten a !OK first
+				done <- err
 			case msg.Status != pbf.OK:
 				b.say(msg.Msg)
 				done <- nil
-			case err == io.EOF:
-				done <- nil
-			case err != nil:
-				done <- err
 			default:
 				b.say(msg.Msg)
 				msgs <- msg
@@ -127,6 +122,10 @@ func (b *SafariBot) Encounter(tkt *pbf.Ticket) error {
 			switch strings.Split(strings.ToLower(b.hear()), " ")[0] {
 			case "ball":
 				a = &pbf.Action{Move: &pbf.Action_Attack{"safari-ball"}}
+				shaker := spinner.New([]string{"  ☉  ", "shake", " ☉   ", "shake", "   ☉ ", "shake", "  ☉  "}, 500*time.Millisecond)
+				shaker.Start()
+				time.Sleep(3 * time.Second)
+				shaker.Stop()
 			case "rock":
 				a = &pbf.Action{Move: &pbf.Action_Attack{"throw-rock"}}
 			case "bait":
@@ -180,6 +179,11 @@ func (b *SafariBot) GetTicket() (tkt *pbf.Ticket, err error) {
 func (b *SafariBot) Greet() (seen bool) {
 	b.say(banner)
 	b.say("Welcome to the Safari Zone!")
+	if !b.Connected() {
+		if err := b.Connect(); err != nil {
+			panic(err)
+		}
+	}
 	return b.yes("Have you visited before?")
 }
 
@@ -252,14 +256,16 @@ func (b *SafariBot) GetTrainerID() (string, bool) {
 	return "", false
 }
 
-func (b *SafariBot) Connect() (err error) {
-	if b.reg, err = registry.Dial(regAddr); err != nil {
+func (b *SafariBot) Connect() error {
+	return b.spin("Connecting", func() (err error) {
+		if b.reg, err = registry.Dial(regAddr); err != nil {
+			return
+		}
+		if b.saf, err = safari.Dial(safAddr); err != nil {
+			return
+		}
 		return
-	}
-	if b.saf, err = safari.Dial(safAddr); err != nil {
-		return
-	}
-	return
+	})
 }
 
 func (b *SafariBot) Close() {
@@ -277,11 +283,26 @@ func (b *SafariBot) say(format string, v ...interface{}) {
 	fmt.Printf(format+"\n", v...)
 }
 
+func (b *SafariBot) spin(msg string, fn func() error) error {
+	spin := spinner.New(spinner.CharSets[7], 250*time.Millisecond)
+	spin.Prefix = msg + " "
+	spin.FinalMSG = "\n"
+	spin.Color("green")
+	spin.Start()
+	defer spin.Stop()
+	return fn()
+}
+
 func (b *SafariBot) hear() string {
 	fmt.Print("> ")
 	b.scanner.Scan()
 	fmt.Println("")
-	return b.scanner.Text()
+	in := b.scanner.Text()
+	if in == "exit" {
+		b.say("Come back soon!")
+		os.Exit(0)
+	}
+	return in
 }
 
 func (b *SafariBot) yes(format string, v ...interface{}) (yes bool) {

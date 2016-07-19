@@ -3,11 +3,25 @@
 	"ignore": "test",
 	"package": [
 		{
+			"checksumSHA1": "SIt1nDmxTb831cdF+UKseuS4AK4=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/briandowns/spinner",
+			"path": "github.com/briandowns/spinner",
+			"revision": "a00ac22c746220ee70a0891a0ec4aa6c56c6bb6a",
+			"revisionTime": "2016-07-18T20:30:27Z"
+		},
+		{
 			"checksumSHA1": "ilxtmghXZ7UhH+8HqzQvDNFohik=",
 			"origin": "github.com/buckhx/safari-zone/vendor/github.com/dgrijalva/jwt-go",
 			"path": "github.com/dgrijalva/jwt-go",
 			"revision": "01aeca54ebda6e0fbfafd0a524d234159c05ec20",
 			"revisionTime": "2016-07-05T20:30:06Z"
+		},
+		{
+			"checksumSHA1": "gkRIq2AsG0e/ngNfqW+IF/zr9o8=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/fatih/color",
+			"path": "github.com/fatih/color",
+			"revision": "87d4004f2ab62d0d255e0a38f1680aa534549fe3",
+			"revisionTime": "2016-06-10T11:06:02Z"
 		},
 		{
 			"checksumSHA1": "SdjsfkkD+qTCV2AbwsK8IK52D08=",
@@ -64,6 +78,20 @@
 			"path": "github.com/golang/protobuf/protoc-gen-go/descriptor",
 			"revision": "3852dcfda249c2097355a6aabb199a28d97b30df",
 			"revisionTime": "2016-06-29T21:10:53Z"
+		},
+		{
+			"checksumSHA1": "6wAWOVRtaH7hX48hmw9o7noyy5Q=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/mattn/go-colorable",
+			"path": "github.com/mattn/go-colorable",
+			"revision": "9056b7a9f2d1f2d96498d6d146acd1f9d5ed3d59",
+			"revisionTime": "2016-06-02T15:08:27Z"
+		},
+		{
+			"checksumSHA1": "NkbetqlpWBi3gP08JDneC+axTKw=",
+			"origin": "github.com/buckhx/safari-zone/vendor/github.com/mattn/go-isatty",
+			"path": "github.com/mattn/go-isatty",
+			"revision": "56b76bdf51f7708750eac80fa38b952bb9f32639",
+			"revisionTime": "2015-12-11T00:06:21Z"
 		},
 		{
 			"checksumSHA1": "PCZaIhNrohY6qno3Oo+lm6JbHYE=",

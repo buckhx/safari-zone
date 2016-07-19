@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"math/rand"
 	"net"
 	"net/http"
 	"time"
@@ -61,7 +62,7 @@ func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, err
 	if tkt, ok := sf.tix.Get(claims.Subject).(*pbf.Ticket); ok && tkt != nil { //TODO move this to the warden
 		return tkt, nil
 	}
-	exp := &pbf.Ticket_Expiry{Time: time.Now().Add(10 * time.Minute).Unix(), Encounters: 25}
+	exp := &pbf.Ticket_Expiry{Time: time.Now().Add(10 * time.Minute).Unix(), Encounters: 5}
 	tkt, err := sf.issueTicket(req.Trainer, req.Zone, exp)
 	if err != nil {
 		err = grpc.Errorf(codes.AlreadyExists, err.Error())
@@ -81,7 +82,11 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 	if err := stream.Send(&pbf.BattleMessage{Msg: msg}); err != nil {
 		return err
 	}
+	spd := float64(pok.Speed)
+	cth := float64(pok.CatchRate)
 	for {
+		fmt.Println("SPEED", spd/255.0)
+		fmt.Println("CATCH", cth/255.0)
 		in, err := stream.Recv()
 		switch {
 		case err == io.EOF:
@@ -89,10 +94,32 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 		case err != nil:
 			return err
 		}
+		if rand.Float64() <= spd/255.0 {
+			msg := fmt.Sprintf("%s fled!", pok.Name)
+			return stream.Send(&pbf.BattleMessage{Msg: msg, Status: pbf.DONE})
+		}
 		var msg string
 		switch act := in.Move.(type) {
 		case *pbf.Action_Attack:
-			msg = "attacked with " + act.Attack
+			switch act.Attack {
+			case "safari-ball":
+				if rand.Float64() <= cth/255.0 {
+					msg = fmt.Sprintf("%s was caught!", pok.Name)
+					return stream.Send(&pbf.BattleMessage{Msg: msg, Status: pbf.DONE})
+				} else {
+					msg = fmt.Sprintf("%s broke free!", pok.Name)
+				}
+			case "throw-rock":
+				spd -= spd / 10
+				cth -= cth / 20
+				msg = fmt.Sprintf("%s is angry!", pok.Name)
+			case "offer-bait":
+				cth += cth / 10
+				spd += spd / 20
+				msg = fmt.Sprintf("%s is eating...", pok.Name)
+			default:
+				msg = fmt.Sprintf("%s is watching carefully", pok.Name)
+			}
 		case *pbf.Action_Item:
 			msg = "There's a time and place for everything!"
 		case *pbf.Action_Switch:
