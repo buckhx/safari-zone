@@ -1,7 +1,8 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"time"
 
 	"github.com/buckhx/safari-zone"
 )
@@ -13,8 +14,16 @@ const (
 )
 
 func main() {
-	bot := safaribot.New()
-	if err := bot.Run(); err != nil {
-		log.Fatal(err)
+	bot := safaribot.DerpBot()
+	for msg := range bot.Msgs {
+		fmt.Println(msg)
+		time.Sleep(100 * time.Millisecond)
 	}
+	//log.Fatal(bot.Get())
+	/*
+		bot := safaribot.New()
+		if err := bot.Run(); err != nil {
+			log.Fatal(err)
+		}
+	*/
 }
