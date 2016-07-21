@@ -65,7 +65,11 @@ func (c *GUI) Run() error {
 		for msg := range c.bot.Msgs {
 			switch msg {
 			case "":
-				//c.display.Clear()
+				name, _ := c.bot.Context().Value(NameKey).(string)
+				if name != "" && name != c.info.BorderLabel {
+					c.info.BorderLabel = name
+				}
+				c.display.Clear()
 			default:
 				c.display.Append("...")
 				ui.Render(ui.Body)
@@ -73,9 +77,10 @@ func (c *GUI) Run() error {
 				c.display.Trim()
 				c.display.Append(string(msg))
 			}
-			//m.Unlock()
 			ui.Render(ui.Body)
 		}
+		time.Sleep(1000 * time.Millisecond)
+		ui.StopLoop()
 	}()
 	ui.Body.Align()
 	ui.Render(ui.Body)

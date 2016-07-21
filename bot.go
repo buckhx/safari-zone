@@ -15,12 +15,12 @@ import (
 	"github.com/buckhx/safari-zone/util/bot"
 )
 
-type ctxKey int
+type CtxKey int
 
 const (
-	nameKey ctxKey = iota
-	uidKey
-	tktKey
+	NameKey CtxKey = iota
+	UidKey
+	TktKey
 )
 
 type SafariBot struct {
@@ -125,8 +125,8 @@ func (b *SafariBot) Register() bot.State {
 	}
 	words := strings.Split(u.Msg, " ")
 	uid := words[len(words)-1]
-	b.ctx = context.WithValue(b.ctx, uidKey, uid)
-	b.ctx = context.WithValue(b.ctx, nameKey, name)
+	b.ctx = context.WithValue(b.ctx, UidKey, uid)
+	b.ctx = context.WithValue(b.ctx, NameKey, name)
 	b.say("Great! %s", u.Msg)
 	b.say("You'll need to remember your trainer ID and your secret word from earlier to sign in")
 	return b.SignIn
@@ -154,7 +154,7 @@ func (b *SafariBot) GetTicket() bot.State {
 	if err != nil {
 		return b.Errorf("There was a problem geting your ticket %s", grpc.ErrorDesc(err))
 	}
-	b.ctx = context.WithValue(b.ctx, tktKey, tkt)
+	b.ctx = context.WithValue(b.ctx, TktKey, tkt)
 	return b.WalkAround
 }
 
@@ -176,7 +176,7 @@ func (b *SafariBot) Exit() bot.State {
 }
 
 func (b *SafariBot) GetTrainerID() (string, bool) {
-	v, ok := b.ctx.Value(uidKey).(string)
+	v, ok := b.ctx.Value(UidKey).(string)
 	return v, ok
 }
 
