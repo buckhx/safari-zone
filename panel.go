@@ -31,6 +31,12 @@ func (d ListPanel) Clear() {
 	d.Items = []string{}
 }
 
+func (d ListPanel) Trim() {
+	if len(d.Items) > 0 {
+		d.Items = d.Items[:len(d.Items)-1]
+	}
+}
+
 type InputPanel struct {
 	*ui.Par
 	name string
@@ -111,6 +117,7 @@ func BotSource(name string, b bot.Bot) InputSource {
 	go func() {
 		defer close(evts)
 		for msg := range b.Msgs {
+			fmt.Println(msg)
 			evts <- ui.Event{
 				Type: "input",
 				Path: "/input/" + name,

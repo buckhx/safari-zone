@@ -1,6 +1,8 @@
 package safaribot
 
 import (
+	"time"
+
 	"github.com/buckhx/safari-zone/util/bot"
 	ui "github.com/gizak/termui"
 )
@@ -24,7 +26,7 @@ type GUI struct {
 //func NewGUI(bot *SafariBot) *GUI {
 func NewGUI(opts Opts) *GUI {
 	b := New(opts)
-	BotSource("bot", b.Bot)
+	//BotSource("bot", b.Bot)
 	return &GUI{
 		bot:     b,
 		header:  header(),
@@ -59,16 +61,22 @@ func (c *GUI) Run() error {
 		evt := e.Data.(InputEvt)
 		c.bot.Send(bot.Cmd(evt.Msg))
 	})
-	ui.Handle("/input/bot", func(e ui.Event) {
-		evt := e.Data.(InputEvt)
-		switch evt.Msg {
-		case "":
-			c.display.Clear()
-		default:
-			c.display.Append(evt.Msg)
+	go func() {
+		for msg := range c.bot.Msgs {
+			switch msg {
+			case "":
+				//c.display.Clear()
+			default:
+				c.display.Append("...")
+				ui.Render(ui.Body)
+				time.Sleep(500 * time.Millisecond)
+				c.display.Trim()
+				c.display.Append(string(msg))
+			}
+			//m.Unlock()
+			ui.Render(ui.Body)
 		}
-		ui.Render(ui.Body)
-	})
+	}()
 	ui.Body.Align()
 	ui.Render(ui.Body)
 	ui.Loop()
@@ -104,7 +112,6 @@ func display() ListPanel {
 	par.BorderLabel = "Display"
 	par.Height = 29
 	lp := ListPanel{List: par, Prefix: " + "}
-	lp.Append("Welcome to the Safari Zone!")
 	return lp
 }
 
