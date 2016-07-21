@@ -55,7 +55,10 @@ func (b *SafariBot) Connect() bot.State {
 		return b.Errorf("Couldn't connect %q", err)
 	}
 	b.say("Welcome to the Safari Zone!")
-	return b.SignIn
+	if b.yes("Would you like to play?") {
+		return b.SignIn
+	}
+	return b.Exit
 }
 
 func (b *SafariBot) SignIn() bot.State {

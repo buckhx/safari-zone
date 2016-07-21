@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/buckhx/safari-zone/util/bot"
 	ui "github.com/gizak/termui"
 )
 
@@ -97,6 +98,35 @@ func (in InputPanel) emit(msg string) {
 			Msg: msg,
 			Src: in.name,
 		},
+	}
+}
+
+type InputSource struct {
+	name string
+	evts chan ui.Event
+}
+
+func BotSource(name string, b bot.Bot) InputSource {
+	evts := make(chan ui.Event, 32)
+	go func() {
+		defer close(evts)
+		for msg := range b.Msgs {
+			evts <- ui.Event{
+				Type: "input",
+				Path: "/input/" + name,
+				Time: time.Now().Unix(),
+				Data: InputEvt{
+					Msg: string(msg),
+					Src: name,
+				},
+			}
+		}
+
+	}()
+	ui.DefaultEvtStream.Merge(name, evts)
+	return InputSource{
+		name: name,
+		evts: evts,
 	}
 }
 

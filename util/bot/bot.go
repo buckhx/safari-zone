@@ -49,6 +49,7 @@ func (b Bot) Run(init State) {
 
 func (b Bot) run(init State) {
 	for st := init(); st != nil; {
+		b.Msgs <- "" //blank msg between states
 		st = st()
 	}
 	close(b.Msgs)

@@ -1,6 +1,9 @@
 package safaribot
 
-import ui "github.com/gizak/termui"
+import (
+	"github.com/buckhx/safari-zone/util/bot"
+	ui "github.com/gizak/termui"
+)
 
 const (
 	enter  = "<enter>"
@@ -10,7 +13,7 @@ const (
 )
 
 type GUI struct {
-	//bot     *SafariBot
+	bot     *SafariBot
 	header  *ui.Par
 	pc      ListPanel
 	info    ListPanel
@@ -19,9 +22,11 @@ type GUI struct {
 }
 
 //func NewGUI(bot *SafariBot) *GUI {
-func NewGUI() *GUI {
+func NewGUI(opts Opts) *GUI {
+	b := New(opts)
+	BotSource("bot", b.Bot)
 	return &GUI{
-		//bot:     bot,
+		bot:     b,
 		header:  header(),
 		input:   input(),
 		display: display(),
@@ -50,9 +55,18 @@ func (c *GUI) Run() error {
 		ui.Render(ui.Body)
 	})
 	ui.Handle("/sys/kbd", c.input.KbdHandler)
-	ui.Handle("/input/entry", func(e ui.Event) {
+	ui.Handle("/input/cmd", func(e ui.Event) {
 		evt := e.Data.(InputEvt)
-		c.display.Append(evt.Msg)
+		c.bot.Send(bot.Cmd(evt.Msg))
+	})
+	ui.Handle("/input/bot", func(e ui.Event) {
+		evt := e.Data.(InputEvt)
+		switch evt.Msg {
+		case "":
+			c.display.Clear()
+		default:
+			c.display.Append(evt.Msg)
+		}
 		ui.Render(ui.Body)
 	})
 	ui.Body.Align()
@@ -79,7 +93,7 @@ func pc() ListPanel {
 }
 
 func header() *ui.Par {
-	par := ui.NewPar("") //banner)
+	par := ui.NewPar(banner)
 	par.Border = false
 	par.Height = 8
 	return par
@@ -98,5 +112,13 @@ func input() InputPanel {
 	par := ui.NewPar(ps1)
 	par.BorderLabel = "Input"
 	par.Height = 3
-	return InputPar("entry", par)
+	return InputPar("cmd", par)
 }
+
+var banner = `
+   _____        __           ︵ _____
+  / ____|      / _|         (⊙-)__  /
+ | (___   __ _| |_ __ _ _ __ ︶  / / ___  _ __   ___
+  \___ \ / _' |  _/ _' | '__|\  / / / _ \| '_ \ / _ \
+  ____) | (_| | || (_| | |  | |/ /_| (_) | | | |  __/
+ |_____/ \__,_|_| \__,_|_|  |_/_____\___/|_| |_|\___|`
