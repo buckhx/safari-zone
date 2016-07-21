@@ -1,29 +1,32 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
-	"time"
+	"os"
 
 	"github.com/buckhx/safari-zone"
+	"github.com/buckhx/safari-zone/util/bot"
 )
 
 const (
 	pdxAddr = "localhost:50051"
 	regAddr = "localhost:50052"
-	sfrAddr = "localhost:50053"
+	safAddr = "localhost:50053"
 )
 
 func main() {
-	bot := safaribot.DerpBot()
-	for msg := range bot.Msgs {
-		fmt.Println(msg)
-		time.Sleep(100 * time.Millisecond)
-	}
-	//log.Fatal(bot.Get())
-	/*
-		bot := safaribot.New()
-		if err := bot.Run(); err != nil {
-			log.Fatal(err)
+	safbot := safaribot.New(safaribot.Opts{
+		RegistryAddress: regAddr,
+		SafariAddress:   safAddr,
+	})
+	go func() {
+		scanner := bufio.NewScanner(os.Stdin)
+		for scanner.Scan() {
+			safbot.Send(bot.Cmd(scanner.Text()))
 		}
-	*/
+	}()
+	for msg := range safbot.Msgs {
+		fmt.Println(msg)
+	}
 }
