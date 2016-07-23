@@ -44,17 +44,13 @@ func (s *Service) Version() string {
 //
 // Trainer name, password, age & gender are required.
 // Any other supplied fields will be ignored
-func (s *Service) Register(ctx context.Context, in *pbf.Trainer) (*pbf.Response, error) {
-	err := s.add(in)
-	if err != nil {
-		return nil, err
+func (s *Service) Register(ctx context.Context, in *pbf.Trainer) (out *pbf.Trainer, err error) {
+	if err = s.add(in); err != nil {
+		return
 	}
-	u, err := s.get(in.Uid)
-	if err != nil {
-		return nil, err
-	}
-	msg := fmt.Sprintf("Registered %s with uid %s", u.Name, u.Uid)
-	return &pbf.Response{Msg: msg, Ok: true}, nil
+	out = &(*in) //deep copy
+	out.Password = ""
+	return
 }
 
 // GetTrainer fetchs a trainer

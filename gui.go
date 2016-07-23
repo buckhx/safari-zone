@@ -1,6 +1,8 @@
 package safaribot
 
 import (
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/buckhx/safari-zone/util/bot"
@@ -18,7 +20,8 @@ type GUI struct {
 	bot     *SafariBot
 	header  *ui.Par
 	pc      ListPanel
-	info    ListPanel
+	trainer ListPanel
+	ticket  ListPanel
 	display ListPanel
 	input   InputPanel
 }
@@ -32,7 +35,8 @@ func NewGUI(opts Opts) *GUI {
 		header:  header(),
 		input:   input(),
 		display: display(),
-		info:    infoPanel(),
+		trainer: trainer(),
+		ticket:  ticket(),
 		pc:      pc(),
 	}
 }
@@ -45,7 +49,7 @@ func (c *GUI) Run() error {
 	ui.Body.AddRows(
 		ui.NewRow(
 			ui.NewCol(9, 0, c.header, c.display, c.input),
-			ui.NewCol(3, 0, c.pc, c.info),
+			ui.NewCol(3, 0, c.trainer, c.ticket, c.pc),
 		),
 	)
 	ui.Handle("/sys/kbd/C-c", func(ui.Event) {
@@ -58,6 +62,7 @@ func (c *GUI) Run() error {
 	})
 	ui.Handle("/sys/kbd", c.input.KbdHandler)
 	ui.Handle("/input/cmd", func(e ui.Event) {
+		//TODO Stop on goodbye
 		evt := e.Data.(InputEvt)
 		c.bot.Send(bot.Cmd(evt.Msg))
 	})
@@ -65,16 +70,27 @@ func (c *GUI) Run() error {
 		for msg := range c.bot.Msgs {
 			switch msg {
 			case "":
-				name, _ := c.bot.Context().Value(NameKey).(string)
-				if name != "" && name != c.info.BorderLabel {
-					c.info.BorderLabel = name
+				trn := c.bot.GetTrainer()
+				if trn != nil {
+					c.trainer.BorderLabel = "TRAINER"
+					c.trainer.Items = []string{
+						fmt.Sprintf(" [ID]      %s", trn.Uid),
+						fmt.Sprintf(" [NAME]    %s", strings.ToUpper(trn.Name)),
+						fmt.Sprintf(" [GENDER]  %s", trn.Gender),
+						fmt.Sprintf(" [AGE]     %d", trn.Age),
+						fmt.Sprintf(" [POKEMON] %d", len(trn.Pc.Pokemon)),
+					}
+					c.pc.BorderLabel = "BILL'S PC"
+					c.pc.Items = make([]string, len(trn.Pc.Pokemon))
+					for i, pok := range trn.Pc.Pokemon {
+						c.pc.Items[i] = fmt.Sprintf(" [%d] %s <%s>", i, pok.NickName, pok.Name)
+					}
 				}
 				c.display.Clear()
 			default:
-				c.display.Append("...")
-				ui.Render(ui.Body)
-				time.Sleep(500 * time.Millisecond)
-				c.display.Trim()
+				//c.display.Loading(func() {
+				//	time.Sleep(1 * time.Second)
+				//})
 				c.display.Append(string(msg))
 			}
 			ui.Render(ui.Body)
@@ -88,18 +104,26 @@ func (c *GUI) Run() error {
 	return nil
 }
 
-func infoPanel() ListPanel {
+func trainer() ListPanel {
 	pdx := ui.NewList()
 	pdx.BorderLabel = "???"
-	pdx.Height = 20
+	pdx.Height = 7
+	pdx.Items = []string{""}
+	return ListPanel{List: pdx, Format: " [%d] %s"}
+}
+
+func ticket() ListPanel {
+	pdx := ui.NewList()
+	pdx.BorderLabel = "???"
+	pdx.Height = 7
 	pdx.Items = []string{""}
 	return ListPanel{List: pdx, Format: " [%d] %s"}
 }
 
 func pc() ListPanel {
 	pc := ui.NewList()
-	pc.BorderLabel = "Bill's PC"
-	pc.Height = 20
+	pc.BorderLabel = "???"
+	pc.Height = 26
 	lp := ListPanel{List: pc, Format: " [%d] %s"}
 	lp.Append("Disconnected...")
 	return lp

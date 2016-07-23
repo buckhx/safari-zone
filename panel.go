@@ -31,9 +31,40 @@ func (d ListPanel) Clear() {
 	d.Items = []string{}
 }
 
+func (d ListPanel) Loading(fn func()) {
+	d.Append("")
+	l := len(d.Items) - 1
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		elip := ""
+		ticker := time.NewTicker(250 * time.Millisecond)
+		for {
+			select {
+			case <-ticker.C:
+				d.Items[l] = d.Items[l][:len(d.Items[l])-len(elip)]
+				if len(elip) < 3 {
+					elip += "."
+				} else {
+					elip = ""
+				}
+				d.Items[l] += elip
+				ui.Render(ui.Body)
+			case <-done:
+				d.Trim()
+				ui.Render(ui.Body)
+				return
+			}
+		}
+	}()
+	fn()
+	done <- struct{}{}
+	<-done
+}
+
 func (d ListPanel) Trim() {
-	if len(d.Items) > 0 {
-		d.Items = d.Items[:len(d.Items)-1]
+	if m := len(d.Items); m > 0 {
+		d.Items = d.Items[:m-1]
 	}
 }
 

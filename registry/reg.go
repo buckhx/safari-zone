@@ -72,7 +72,7 @@ func (r *registry) add(u *pbf.Trainer) (err error) {
 	for !ok { // make sure out short UID isn't taken
 		uid := util.GenUID()
 		u.Uid = uid
-		ok = r.usrs.CompareAndSet(uid, u, func() bool {
+		ok = r.usrs.CompareAndSet(uid, *u, func() bool {
 			return !r.usrs.(*kvc.MemKVC).UnsafeHas(uid)
 		})
 	}
@@ -84,10 +84,10 @@ func (r *registry) get(uid string) (*pbf.Trainer, error) {
 	if v == nil {
 		return nil, fmt.Errorf("not registered")
 	}
-	if u, ok := v.(*pbf.Trainer); !ok {
+	if u, ok := v.(pbf.Trainer); !ok {
 		return nil, fmt.Errorf("db assertion")
 	} else {
-		return u, nil
+		return &u, nil
 	}
 }
 
@@ -145,7 +145,7 @@ func (r *registry) bootstrap() {
 			Age:      11,
 			Pc: &pbf.Pokemon_Collection{
 				Pokemon: []*pbf.Pokemon{
-					{Number: 25}, //TODO fill this own},
+					{Number: 25, Name: "Pikachu", NickName: "PiKaChu"},
 				},
 			},
 		},

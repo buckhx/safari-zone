@@ -18,8 +18,7 @@ import (
 type CtxKey int
 
 const (
-	NameKey CtxKey = iota
-	UidKey
+	TrainerKey CtxKey = iota
 	TktKey
 )
 
@@ -67,22 +66,32 @@ func (b *SafariBot) SignIn() bot.State {
 	}
 	b.say("Let's sign you in to get your token to enter different regions")
 	for {
-		uid, ok := b.GetTrainerID()
-		if !ok || !b.yes("Is your trainer ID %s?", uid) {
-			b.say("Please enter your trainer ID")
-			uid = b.hear()
+		u := b.GetTrainer()
+		if u == nil || !b.yes("Is your Trainer ID %s?", u.Uid) {
+			b.say("Please enter your Trainer ID")
+			uid := b.hear()
+			u = &pbf.Trainer{Uid: uid}
 		}
 		b.say("Enter your secret please")
 		pass := b.hear()
-		tok, err := b.reg.Enter(auth.AuthenticateContext(b.ctx, uid, pass), &pbf.Trainer{Uid: uid, Password: pass})
+		authctx := auth.AuthenticateContext(b.ctx, u.Uid, pass)
+		tok, err := b.reg.Enter(authctx, u)
+		//tok, err := b.reg.Enter(auth.AuthenticateContext(b.ctx, u.Uid, u.Password), u)
 		if err != nil {
 			b.say("Hmmm there was a problem %q. Let's try again", grpc.ErrorDesc(err))
 			continue
 		}
 		b.ctx = auth.AuthorizeContext(b.ctx, tok.Access)
+		trn, err := b.reg.GetTrainer(b.ctx, u)
+		if err != nil {
+			b.say("Hmmm there was a problem %q. Let's try again", grpc.ErrorDesc(err))
+			continue
+		}
+		b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
 		break
 	}
-	b.say("Awesome! Now we've got your token.\nYou can get tickets for different regions for the next 24 hours before you need a new token.")
+	b.say("Awesome! Now we've got your token")
+	b.say("You can get tickets for different regions for the next 24 hours before you need a new token.")
 	return b.GetTicket
 }
 
@@ -118,16 +127,16 @@ func (b *SafariBot) Register() bot.State {
 		break
 	}
 	b.say("Registering...")
-	u, err := b.reg.Register(b.ctx, &pbf.Trainer{Name: name, Password: pass, Age: age, Gender: gdr})
+	trn, err := b.reg.Register(b.ctx, &pbf.Trainer{Name: name, Password: pass, Age: age, Gender: gdr})
 	if err != nil {
-		b.say("There was a problem with your registration %q\nLet's start from the top.", grpc.ErrorDesc(err))
-		return b.Register
+		b.say("There was a problem with your registration %q", grpc.ErrorDesc(err))
+		if b.yes("Say ok to start from the top") {
+			return b.Register
+		}
+		return b.Exit
 	}
-	words := strings.Split(u.Msg, " ")
-	uid := words[len(words)-1]
-	b.ctx = context.WithValue(b.ctx, UidKey, uid)
-	b.ctx = context.WithValue(b.ctx, NameKey, name)
-	b.say("Great! %s", u.Msg)
+	b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
+	b.say("Great! %s", trn.Name)
 	b.say("You'll need to remember your trainer ID and your secret word from earlier to sign in")
 	return b.SignIn
 }
@@ -135,8 +144,8 @@ func (b *SafariBot) Register() bot.State {
 func (b *SafariBot) GetTicket() bot.State {
 	//b.say("Getting ticket")
 	//return b.WalkAround
-	tid, ok := b.GetTrainerID()
-	if !ok {
+	trn := b.GetTrainer()
+	if trn == nil {
 		b.say("Couldn't verify your token. Let's get a new one.")
 		return b.SignIn
 	}
@@ -150,7 +159,7 @@ func (b *SafariBot) GetTicket() bot.State {
 	if !b.yes("You'd like to visit %s?", zone.Region) {
 		return b.GetTicket
 	}
-	tkt, err := b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: &pbf.Trainer{Uid: tid}, Zone: zone})
+	tkt, err := b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: trn, Zone: zone})
 	if err != nil {
 		return b.Errorf("There was a problem geting your ticket %s", grpc.ErrorDesc(err))
 	}
@@ -175,9 +184,9 @@ func (b *SafariBot) Exit() bot.State {
 	return nil
 }
 
-func (b *SafariBot) GetTrainerID() (string, bool) {
-	v, ok := b.ctx.Value(UidKey).(string)
-	return v, ok
+func (b *SafariBot) GetTrainer() *pbf.Trainer {
+	u, _ := b.ctx.Value(TrainerKey).(*pbf.Trainer)
+	return u
 }
 
 func (b *SafariBot) Context() context.Context {

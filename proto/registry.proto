@@ -13,7 +13,7 @@ service Registry {
 	//
 	// Trainer name, password, age & gender are required. 
 	// Any other supplied fields will be ignored
-	rpc Register (Trainer) returns (msg.Response) {
+	rpc Register (Trainer) returns (Trainer) {
 		option (google.api.http) = {
 			post: "/trainer"
 			body: "*"
