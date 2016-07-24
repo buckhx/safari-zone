@@ -41,15 +41,15 @@ func NewGUI(opts Opts) *GUI {
 	}
 }
 
-func (c *GUI) Run() error {
+func (gui *GUI) Run() error {
 	if err := ui.Init(); err != nil {
 		return err
 	}
 	defer ui.Close()
 	ui.Body.AddRows(
 		ui.NewRow(
-			ui.NewCol(9, 0, c.header, c.display, c.input),
-			ui.NewCol(3, 0, c.trainer, c.ticket, c.pc),
+			ui.NewCol(9, 0, gui.header, gui.display, gui.input),
+			ui.NewCol(3, 0, gui.trainer, gui.ticket, gui.pc),
 		),
 	)
 	ui.Handle("/sys/kbd/C-c", func(ui.Event) {
@@ -60,48 +60,68 @@ func (c *GUI) Run() error {
 		ui.Body.Align()
 		ui.Render(ui.Body)
 	})
-	ui.Handle("/sys/kbd", c.input.KbdHandler)
+	ui.Handle("/sys/kbd", gui.input.KbdHandler)
 	ui.Handle("/input/cmd", func(e ui.Event) {
 		//TODO Stop on goodbye
 		evt := e.Data.(InputEvt)
-		c.bot.Send(bot.Cmd(evt.Msg))
+		gui.bot.Send(bot.Cmd(evt.Msg))
 	})
-	go func() {
-		for msg := range c.bot.Msgs {
-			switch msg {
-			case "":
-				trn := c.bot.GetTrainer()
-				if trn != nil {
-					c.trainer.BorderLabel = "TRAINER"
-					c.trainer.Items = []string{
-						fmt.Sprintf(" [ID]      %s", trn.Uid),
-						fmt.Sprintf(" [NAME]    %s", strings.ToUpper(trn.Name)),
-						fmt.Sprintf(" [GENDER]  %s", trn.Gender),
-						fmt.Sprintf(" [AGE]     %d", trn.Age),
-						fmt.Sprintf(" [POKEMON] %d", len(trn.Pc.Pokemon)),
-					}
-					c.pc.BorderLabel = "BILL'S PC"
-					c.pc.Items = make([]string, len(trn.Pc.Pokemon))
-					for i, pok := range trn.Pc.Pokemon {
-						c.pc.Items[i] = fmt.Sprintf(" [%d] %s <%s>", i, pok.NickName, pok.Name)
-					}
-				}
-				c.display.Clear()
-			default:
-				//c.display.Loading(func() {
-				//	time.Sleep(1 * time.Second)
-				//})
-				c.display.Append(string(msg))
-			}
-			ui.Render(ui.Body)
-		}
-		time.Sleep(1000 * time.Millisecond)
-		ui.StopLoop()
-	}()
+	go gui.msgListen()
 	ui.Body.Align()
 	ui.Render(ui.Body)
 	ui.Loop()
 	return nil
+}
+
+func (gui *GUI) msgListen() {
+	for msg := range gui.bot.Msgs {
+		switch msg {
+		case "":
+			gui.updateTrainer()
+			gui.updateTicket()
+			gui.display.Clear()
+		default:
+			//c.display.Loading(func() {
+			//	time.Sleep(1 * time.Second)
+			//})
+			gui.display.Append(string(msg))
+		}
+		ui.Render(ui.Body)
+	}
+	time.Sleep(1000 * time.Millisecond)
+	//done channel
+	ui.StopLoop()
+}
+
+func (gui *GUI) updateTicket() {
+	if tkt := gui.bot.GetTicket(); tkt != nil {
+		gui.ticket.BorderLabel = "TICKET"
+		gui.ticket.Items = []string{
+			fmt.Sprintf(" [TKTID]   %s", tkt.Uid),
+			fmt.Sprintf(" [ZONE]    %s", tkt.Zone.Region),
+			fmt.Sprintf(" [EXPIRES] %s", time.Duration(tkt.Expires.Time-time.Now().Unix())*time.Second),
+			fmt.Sprintf(" [ENCNTRS] %d", tkt.Expires.Encounters),
+			fmt.Sprintf(" [ISSUED]  %s", time.Unix(tkt.Time.Unix, 0).Format(time.RFC822)),
+		}
+	}
+}
+
+func (gui *GUI) updateTrainer() {
+	if trn := gui.bot.GetTrainer(); trn != nil {
+		gui.trainer.BorderLabel = "TRAINER"
+		gui.trainer.Items = []string{
+			fmt.Sprintf(" [ID]      %s", trn.Uid),
+			fmt.Sprintf(" [NAME]    %s", strings.ToUpper(trn.Name)),
+			fmt.Sprintf(" [GENDER]  %s", trn.Gender),
+			fmt.Sprintf(" [AGE]     %d", trn.Age),
+			fmt.Sprintf(" [POKEMON] %d", len(trn.Pc.Pokemon)),
+		}
+		gui.pc.BorderLabel = "BILL'S PC"
+		gui.pc.Items = make([]string, len(trn.Pc.Pokemon))
+		for i, pok := range trn.Pc.Pokemon {
+			gui.pc.Items[i] = fmt.Sprintf(" [%d] %s <%s>", i, pok.NickName, pok.Name)
+		}
+	}
 }
 
 func trainer() ListPanel {

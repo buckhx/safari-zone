@@ -19,7 +19,7 @@ type CtxKey int
 
 const (
 	TrainerKey CtxKey = iota
-	TktKey
+	TicketKey
 )
 
 type SafariBot struct {
@@ -92,7 +92,7 @@ func (b *SafariBot) SignIn() bot.State {
 	}
 	b.say("Awesome! Now we've got your token")
 	b.say("You can get tickets for different regions for the next 24 hours before you need a new token.")
-	return b.GetTicket
+	return b.FetchTicket
 }
 
 func (b *SafariBot) Register() bot.State {
@@ -141,7 +141,7 @@ func (b *SafariBot) Register() bot.State {
 	return b.SignIn
 }
 
-func (b *SafariBot) GetTicket() bot.State {
+func (b *SafariBot) FetchTicket() bot.State {
 	//b.say("Getting ticket")
 	//return b.WalkAround
 	trn := b.GetTrainer()
@@ -153,17 +153,17 @@ func (b *SafariBot) GetTicket() bot.State {
 	zc, err := strconv.Atoi(b.hear())
 	if err != nil || zc < 0 || zc > 6 {
 		b.say("That wasn't a valid region code. How about another?")
-		return b.GetTicket
+		return b.FetchTicket
 	}
 	zone := &pbf.Zone{Region: pbf.Zone_Code(zc)}
 	if !b.yes("You'd like to visit %s?", zone.Region) {
-		return b.GetTicket
+		return b.FetchTicket
 	}
 	tkt, err := b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: trn, Zone: zone})
 	if err != nil {
 		return b.Errorf("There was a problem geting your ticket %s", grpc.ErrorDesc(err))
 	}
-	b.ctx = context.WithValue(b.ctx, TktKey, tkt)
+	b.ctx = context.WithValue(b.ctx, TicketKey, tkt)
 	return b.WalkAround
 }
 
@@ -186,6 +186,11 @@ func (b *SafariBot) Exit() bot.State {
 
 func (b *SafariBot) GetTrainer() *pbf.Trainer {
 	u, _ := b.ctx.Value(TrainerKey).(*pbf.Trainer)
+	return u
+}
+
+func (b *SafariBot) GetTicket() *pbf.Ticket {
+	u, _ := b.ctx.Value(TicketKey).(*pbf.Ticket)
 	return u
 }
 
