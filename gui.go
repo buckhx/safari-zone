@@ -99,9 +99,9 @@ func (gui *GUI) updateTicket() {
 		gui.ticket.Items = []string{
 			fmt.Sprintf(" [TKTID]   %s", tkt.Uid),
 			fmt.Sprintf(" [ZONE]    %s", tkt.Zone.Region),
+			fmt.Sprintf(" [ISSUED]  %s", time.Unix(tkt.Time.Unix, 0).Format(time.Kitchen)),
 			fmt.Sprintf(" [EXPIRES] %s", time.Duration(tkt.Expires.Time-time.Now().Unix())*time.Second),
 			fmt.Sprintf(" [ENCNTRS] %d", tkt.Expires.Encounters),
-			fmt.Sprintf(" [ISSUED]  %s", time.Unix(tkt.Time.Unix, 0).Format(time.RFC822)),
 		}
 	}
 }

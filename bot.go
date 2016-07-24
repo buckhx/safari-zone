@@ -3,6 +3,7 @@ package safaribot
 import (
 	"context"
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -53,11 +54,38 @@ func (b *SafariBot) Connect() bot.State {
 	if b.saf, err = b.opts.DialSafari(); err != nil {
 		return b.Errorf("Couldn't connect %q", err)
 	}
+	uid := os.Getenv("SAFARI_UID")
+	pass := os.Getenv("SAFARI_PASS")
+	if uid != "" && pass != "" {
+		return b.setcreds(uid, pass)
+	}
 	b.say("Welcome to the Safari Zone!")
 	if b.yes("Would you like to play?") {
 		return b.SignIn
 	}
 	return b.Exit
+}
+
+func (b *SafariBot) setcreds(uid, pass string) bot.State {
+	//TODO return err instead of state
+	u := &pbf.Trainer{Uid: uid, Password: pass}
+	ctx := auth.AuthenticateContext(b.ctx, u.Uid, u.Password)
+	tok, err := b.reg.Enter(ctx, u)
+	if err != nil {
+		panic(err)
+	}
+	ctx = auth.AuthorizeContext(b.ctx, tok.Access)
+	trn, err := b.reg.GetTrainer(ctx, u)
+	if err != nil {
+		panic(err)
+	}
+	ctx = context.WithValue(ctx, TrainerKey, trn)
+	tkt, err := b.saf.Enter(ctx, &pbf.Ticket{Trainer: trn, Zone: &pbf.Zone{Region: pbf.KANTO}})
+	if err != nil {
+		panic(err)
+	}
+	b.ctx = context.WithValue(ctx, TicketKey, tkt)
+	return b.WalkAround
 }
 
 func (b *SafariBot) SignIn() bot.State {
