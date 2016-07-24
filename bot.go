@@ -3,9 +3,11 @@ package safaribot
 import (
 	"context"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
+	"time"
 
 	"google.golang.org/grpc"
 
@@ -170,8 +172,6 @@ func (b *SafariBot) Register() bot.State {
 }
 
 func (b *SafariBot) FetchTicket() bot.State {
-	//b.say("Getting ticket")
-	//return b.WalkAround
 	trn := b.GetTrainer()
 	if trn == nil {
 		b.say("Couldn't verify your token. Let's get a new one.")
@@ -197,7 +197,13 @@ func (b *SafariBot) FetchTicket() bot.State {
 
 func (b *SafariBot) WalkAround() bot.State {
 	if b.yes("Walk around?") {
-		return b.Encounter
+		if rand.Float32() <= 0.5 {
+			return b.Encounter
+		} else {
+			b.say("What a lovely day!")
+			time.Sleep(1 * time.Second)
+			return b.WalkAround
+		}
 	}
 	return b.Exit
 }
