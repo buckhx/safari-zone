@@ -196,21 +196,86 @@ func (b *SafariBot) FetchTicket() bot.State {
 }
 
 func (b *SafariBot) WalkAround() bot.State {
-	if b.yes("Walk around?") {
-		if rand.Float32() <= 0.5 {
-			return b.Encounter
+	for {
+		if b.yes("Walk around?") {
+			if rand.Float32() <= 0.75 {
+				return b.Encounter
+			} else {
+				b.say("What a lovely day!")
+				time.Sleep(1 * time.Second)
+			}
 		} else {
-			b.say("What a lovely day!")
-			time.Sleep(1 * time.Second)
-			return b.WalkAround
+			break
 		}
 	}
 	return b.Exit
 }
 
 func (b SafariBot) Encounter() bot.State {
-	b.say("Encounter!")
-	return b.WalkAround
+	stream, err := b.saf.Encounter(b.ctx)
+	if err != nil {
+		return b.Errorf(grpc.ErrorDesc(err))
+	}
+	defer stream.CloseSend()
+	done := make(chan error)
+	msgs := make(chan *pbf.BattleMessage)
+	go func() {
+		defer close(msgs)
+		defer close(done)
+		for {
+			msg, err := stream.Recv()
+			switch {
+			case err != nil:
+				// treat EOF as a normal error
+				// should have fotten a !OK first
+				done <- err
+			case msg.Status != pbf.OK:
+				b.say(msg.Msg)
+				time.Sleep(1 * time.Second)
+				done <- nil
+			default:
+				b.say(msg.Msg)
+				msgs <- msg
+				continue
+			}
+			return
+		}
+	}()
+	for {
+		select {
+		case err := <-done:
+			if err != nil {
+				return b.Errorf(grpc.ErrorDesc(err))
+			}
+			return b.WalkAround
+		case <-msgs:
+			b.say("What's your move? (ball, rock, bait, run)")
+			var a *pbf.Action
+			switch strings.Split(strings.ToLower(b.hear()), " ")[0] {
+			case "ball":
+				a = &pbf.Action{Move: &pbf.Action_Attack{"safari-ball"}}
+			case "rock":
+				a = &pbf.Action{Move: &pbf.Action_Attack{"throw-rock"}}
+			case "bait":
+				a = &pbf.Action{Move: &pbf.Action_Attack{"offer-bait"}}
+			case "run":
+				a = &pbf.Action{Move: &pbf.Action_Run{true}}
+			case "item":
+				a = &pbf.Action{Move: &pbf.Action_Item{}}
+			case "switch":
+				a = &pbf.Action{Move: &pbf.Action_Switch{}}
+			case "":
+				b.say("Gotta do something!")
+				continue
+			default:
+				b.say("There's no time for that!")
+				continue
+			}
+			if err := stream.Send(a); err != nil {
+				return b.Errorf(grpc.ErrorDesc(err))
+			}
+		}
+	}
 }
 
 func (b *SafariBot) Exit() bot.State {
