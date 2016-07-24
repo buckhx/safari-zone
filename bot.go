@@ -196,6 +196,15 @@ func (b *SafariBot) FetchTicket() bot.State {
 }
 
 func (b *SafariBot) WalkAround() bot.State {
+	tkt := b.GetTicket()
+	if tkt.Expires.Encounters <= 0 { //TODO time expiry on canceled ctx
+		b.say("Ding Ding! Your ticket is expired!")
+		if b.yes("Would you like to get a new ticket?") {
+			return b.FetchTicket
+		} else {
+			return b.Exit
+		}
+	}
 	for {
 		if b.yes("Walk around?") {
 			if rand.Float32() <= 0.75 {
@@ -216,6 +225,7 @@ func (b SafariBot) Encounter() bot.State {
 	if err != nil {
 		return b.Errorf(grpc.ErrorDesc(err))
 	}
+	b.decrTicket()
 	defer stream.CloseSend()
 	done := make(chan error)
 	msgs := make(chan *pbf.BattleMessage)
@@ -295,6 +305,13 @@ func (b *SafariBot) GetTicket() *pbf.Ticket {
 
 func (b *SafariBot) Context() context.Context {
 	return b.ctx
+}
+
+// This decrs the local ticket, the server's ticket decrs on it's own
+func (b *SafariBot) decrTicket() {
+	tkt := b.GetTicket()
+	tkt.Expires.Encounters -= 1
+	b.ctx = context.WithValue(b.ctx, TicketKey, tkt)
 }
 
 func (b *SafariBot) say(format string, v ...interface{}) {

@@ -110,12 +110,12 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 					msg = fmt.Sprintf("%s broke free!", pok.Name)
 				}
 			case "throw-rock":
-				spd -= spd / 10
-				cth -= cth / 20
+				spd -= 10
+				cth -= 5
 				msg = fmt.Sprintf("%s is angry!", pok.Name)
 			case "offer-bait":
-				cth += cth / 10
-				spd += spd / 20
+				cth += 10
+				spd += 5
 				msg = fmt.Sprintf("%s is eating...", pok.Name)
 			default:
 				msg = fmt.Sprintf("%s is watching carefully", pok.Name)
