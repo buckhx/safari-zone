@@ -90,8 +90,8 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 	spd := float64(pok.Speed)
 	cth := float64(pok.CatchRate)
 	for {
-		fmt.Println("SPEED", spd/255.0)
-		fmt.Println("CATCH", cth/255.0)
+		//fmt.Println("SPEED", spd/255.0)
+		//fmt.Println("CATCH", cth/255.0)
 		in, err := stream.Recv()
 		switch {
 		case err == io.EOF:

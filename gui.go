@@ -29,7 +29,6 @@ type GUI struct {
 //func NewGUI(bot *SafariBot) *GUI {
 func NewGUI(opts Opts) *GUI {
 	b := New(opts)
-	//BotSource("bot", b.Bot)
 	return &GUI{
 		bot:     b,
 		header:  header(),
@@ -80,12 +79,6 @@ func (gui *GUI) msgListen() {
 			gui.updateTrainer()
 			gui.updateTicket()
 			gui.display.Clear()
-			trn := gui.bot.Trainer()
-			if trn == nil {
-				gui.display.Append(fmt.Sprintf("%s", trn))
-			} else {
-				gui.display.Append(fmt.Sprintf("%s", trn.Pc.Pokemon))
-			}
 		default:
 			//c.display.Loading(func() {
 			//	time.Sleep(1 * time.Second)

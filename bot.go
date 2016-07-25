@@ -108,7 +108,6 @@ func (b *SafariBot) SignIn() bot.State {
 		pass := b.hear()
 		authctx := auth.AuthenticateContext(b.ctx, u.Uid, pass)
 		tok, err := b.reg.Enter(authctx, u)
-		//tok, err := b.reg.Enter(auth.AuthenticateContext(b.ctx, u.Uid, u.Password), u)
 		if err != nil {
 			b.say("Hmmm there was a problem %q. Let's try again", grpc.ErrorDesc(err))
 			continue
@@ -119,7 +118,6 @@ func (b *SafariBot) SignIn() bot.State {
 			b.say("Hmmm there was a problem %q. Let's try again", grpc.ErrorDesc(err))
 			continue
 		}
-		//b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
 		break
 	}
 	b.say("Awesome! Now we've got your token")
@@ -168,7 +166,6 @@ func (b *SafariBot) Register() bot.State {
 		}
 		return b.Exit
 	}
-	//b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
 	b.say("Great! %s", b.trn.Name)
 	b.say("You'll need to remember your trainer ID and your secret word from earlier to sign in")
 	return b.SignIn
@@ -221,7 +218,7 @@ func (b *SafariBot) WalkAround() bot.State {
 	return b.Exit
 }
 
-func (b SafariBot) Encounter() bot.State {
+func (b *SafariBot) Encounter() bot.State {
 	stream, err := b.saf.Encounter(b.ctx)
 	if err != nil {
 		return b.Errorf(grpc.ErrorDesc(err))
