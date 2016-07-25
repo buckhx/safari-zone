@@ -79,24 +79,28 @@ func (r *registry) add(u *pbf.Trainer) (err error) {
 	return
 }
 
-func (r *registry) get(uid string) (*pbf.Trainer, error) {
-	v := r.usrs.Get(uid)
-	if v == nil {
-		return nil, fmt.Errorf("not registered")
-	}
-	if u, ok := v.(pbf.Trainer); !ok {
-		return nil, fmt.Errorf("db assertion")
+func (r *registry) get(uid string) (u *pbf.Trainer, err error) {
+	if v, ok := r.usrs.Get(uid).(pbf.Trainer); ok {
+		u = &v
+		u.Password = ""
 	} else {
-		return &u, nil
+		err = fmt.Errorf("not registered")
 	}
+	return
+}
+
+func (r *registry) update(u *pbf.Trainer) {
+	r.usrs.Set(u.Uid, *u)
 }
 
 func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
-	v, err := r.get(req.Uid)
+	v, ok := r.usrs.Get(req.Uid).(pbf.Trainer)
 	switch {
-	case err != nil:
-		break
+	case !ok:
+		err = fmt.Errorf("not registered")
 	case v.Password != util.Hash(req.Password):
+		fmt.Println("DB ", v.Password)
+		fmt.Println("REQ ", util.Hash(req.Password))
 		err = fmt.Errorf("invalid login credentials")
 	case !auth.Claims{Scope: v.Scope}.HasScope(req.Scope...):
 		err = fmt.Errorf("invalid scope")

@@ -32,8 +32,13 @@ type Service struct {
 }
 
 func NewService(addr string) (srv.Service, error) {
+	reg, err := registry.Dial(registryAddr)
+	if err != nil {
+		return nil, err
+	}
 	return &Service{
 		warden: newGame(),
+		reg:    reg,
 		opts: srv.Opts{
 			Addr: addr,
 			Auth: auth.Opts{
@@ -105,6 +110,19 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 			case "safari-ball":
 				if rand.Float64() <= cth/255.0 {
 					msg = fmt.Sprintf("%s was caught!", pok.Name)
+					claims, ok := auth.ClaimsFromContext(stream.Context())
+					if !ok {
+						fmt.Println(stream.Context())
+						return fmt.Errorf("No auth claims")
+					}
+					trn, err := sf.reg.GetTrainer(stream.Context(), &pbf.Trainer{Uid: claims.Subject})
+					if err != nil {
+						return err
+					}
+					trn.Pc.Pokemon = append(trn.Pc.Pokemon, pok)
+					if _, err = sf.reg.UpdateTrainer(stream.Context(), trn); err != nil {
+						return err
+					}
 					return stream.Send(&pbf.BattleMessage{Msg: msg, Status: pbf.DONE})
 				} else {
 					msg = fmt.Sprintf("%s broke free!", pok.Name)

@@ -80,6 +80,12 @@ func (gui *GUI) msgListen() {
 			gui.updateTrainer()
 			gui.updateTicket()
 			gui.display.Clear()
+			trn := gui.bot.Trainer()
+			if trn == nil {
+				gui.display.Append(fmt.Sprintf("%s", trn))
+			} else {
+				gui.display.Append(fmt.Sprintf("%s", trn.Pc.Pokemon))
+			}
 		default:
 			//c.display.Loading(func() {
 			//	time.Sleep(1 * time.Second)
@@ -94,7 +100,7 @@ func (gui *GUI) msgListen() {
 }
 
 func (gui *GUI) updateTicket() {
-	if tkt := gui.bot.GetTicket(); tkt != nil {
+	if tkt := gui.bot.Ticket(); tkt != nil {
 		gui.ticket.BorderLabel = "TICKET"
 		gui.ticket.Items = []string{
 			fmt.Sprintf(" [TKTID]   %s", tkt.Uid),
@@ -107,7 +113,7 @@ func (gui *GUI) updateTicket() {
 }
 
 func (gui *GUI) updateTrainer() {
-	if trn := gui.bot.GetTrainer(); trn != nil {
+	if trn := gui.bot.Trainer(); trn != nil {
 		gui.trainer.BorderLabel = "TRAINER"
 		gui.trainer.Items = []string{
 			fmt.Sprintf(" [ID]      %s", trn.Uid),

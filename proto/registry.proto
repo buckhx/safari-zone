@@ -29,6 +29,15 @@ service Registry {
 		};
 	}
 
+	// Get fetchs a trainer
+	//
+	// The populated fields will depend on the auth scope of the token
+	rpc UpdateTrainer (Trainer) returns (Trainer) {
+		option (google.api.http) = {
+			put: "/trainer/{uid}"
+		};
+	}
+
 	// Enter authenticates a user to retrieve a an access token to authorize requests for a safari
 	//
 	// HTTPS required w/ HTTP basic access authentication via a header

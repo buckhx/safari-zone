@@ -58,18 +58,45 @@ func (s *Service) Register(ctx context.Context, in *pbf.Trainer) (out *pbf.Train
 // The populated fields will depend on the auth scope of the token
 func (s *Service) GetTrainer(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
 	claims, ok := auth.ClaimsFromContext(ctx)
+	u, err := s.get(in.Uid)
+	switch {
+	case !ok:
+		err = grpc.Errorf(codes.Unauthenticated, "Invalid Authorization: missing claims")
+		u = nil
+	case !claims.HasSubScope(in.Uid, ProfScope):
+		err = grpc.Errorf(codes.PermissionDenied, "Invalid Scope")
+		u = nil
+	case err != nil:
+		err = grpc.Errorf(codes.NotFound, "Trainer Not Found: %s", err)
+	}
+	return u, err
+}
+
+// UpdateTrainer updates a trainer
+//
+// The following fields can be updated w/ this method: Pc
+func (s *Service) UpdateTrainer(ctx context.Context, in *pbf.Trainer) (*pbf.Trainer, error) {
+	claims, ok := auth.ClaimsFromContext(ctx)
 	if !ok {
 		return nil, grpc.Errorf(codes.Unauthenticated, "Invalid Authorization: missing claims")
 	}
-	if claims.HasSubScope(in.Uid, ProfScope) {
-		u, err := s.get(in.Uid)
-		if err != nil {
-			return nil, grpc.Errorf(codes.NotFound, "Trainer Not Found: %s", err)
-		}
-		u.Password = ""
-		return u, nil
+	if claims.Subject != in.Uid {
+		return nil, grpc.Errorf(codes.PermissionDenied, "Subject is not able to do this action")
 	}
-	return nil, grpc.Errorf(codes.PermissionDenied, "Invalid Scope")
+	u, ok := s.usrs.Get(in.Uid).(pbf.Trainer)
+	if !ok {
+		return nil, grpc.Errorf(codes.NotFound, "Trainer Not Found: %s", in.Uid)
+	}
+	trn := &u
+	switch {
+	case in.Pc != nil:
+		trn.Pc = in.Pc
+		fallthrough
+	default:
+		break
+	}
+	s.update(trn)
+	return trn, nil
 }
 
 // Enter authenticates a user to retrieve a an access token to authorize requests for a safari

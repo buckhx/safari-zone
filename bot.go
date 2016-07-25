@@ -31,6 +31,8 @@ type SafariBot struct {
 	reg  *registry.Client
 	saf  *safari.Client
 	ctx  context.Context
+	trn  *pbf.Trainer
+	tkt  *pbf.Ticket
 }
 
 func New(opts Opts) *SafariBot {
@@ -76,17 +78,17 @@ func (b *SafariBot) setcreds(uid, pass string) bot.State {
 	if err != nil {
 		panic(err)
 	}
-	ctx = auth.AuthorizeContext(b.ctx, tok.Access)
-	trn, err := b.reg.GetTrainer(ctx, u)
+	b.ctx = auth.AuthorizeContext(b.ctx, tok.Access)
+	b.trn, err = b.reg.GetTrainer(b.ctx, u)
 	if err != nil {
 		panic(err)
 	}
-	ctx = context.WithValue(ctx, TrainerKey, trn)
-	tkt, err := b.saf.Enter(ctx, &pbf.Ticket{Trainer: trn, Zone: &pbf.Zone{Region: pbf.KANTO}})
+	//ctx = context.WithValue(ctx, TrainerKey, trn)
+	b.tkt, err = b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: b.trn, Zone: &pbf.Zone{Region: pbf.KANTO}})
 	if err != nil {
 		panic(err)
 	}
-	b.ctx = context.WithValue(ctx, TicketKey, tkt)
+	//b.ctx = context.WithValue(ctx, TicketKey, tkt)
 	return b.WalkAround
 }
 
@@ -96,7 +98,7 @@ func (b *SafariBot) SignIn() bot.State {
 	}
 	b.say("Let's sign you in to get your token to enter different regions")
 	for {
-		u := b.GetTrainer()
+		u := b.trn
 		if u == nil || !b.yes("Is your Trainer ID %s?", u.Uid) {
 			b.say("Please enter your Trainer ID")
 			uid := b.hear()
@@ -112,12 +114,12 @@ func (b *SafariBot) SignIn() bot.State {
 			continue
 		}
 		b.ctx = auth.AuthorizeContext(b.ctx, tok.Access)
-		trn, err := b.reg.GetTrainer(b.ctx, u)
+		b.trn, err = b.reg.GetTrainer(b.ctx, u)
 		if err != nil {
 			b.say("Hmmm there was a problem %q. Let's try again", grpc.ErrorDesc(err))
 			continue
 		}
-		b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
+		//b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
 		break
 	}
 	b.say("Awesome! Now we've got your token")
@@ -157,7 +159,8 @@ func (b *SafariBot) Register() bot.State {
 		break
 	}
 	b.say("Registering...")
-	trn, err := b.reg.Register(b.ctx, &pbf.Trainer{Name: name, Password: pass, Age: age, Gender: gdr})
+	var err error
+	b.trn, err = b.reg.Register(b.ctx, &pbf.Trainer{Name: name, Password: pass, Age: age, Gender: gdr})
 	if err != nil {
 		b.say("There was a problem with your registration %q", grpc.ErrorDesc(err))
 		if b.yes("Say ok to start from the top") {
@@ -165,15 +168,14 @@ func (b *SafariBot) Register() bot.State {
 		}
 		return b.Exit
 	}
-	b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
-	b.say("Great! %s", trn.Name)
+	//b.ctx = context.WithValue(b.ctx, TrainerKey, trn)
+	b.say("Great! %s", b.trn.Name)
 	b.say("You'll need to remember your trainer ID and your secret word from earlier to sign in")
 	return b.SignIn
 }
 
 func (b *SafariBot) FetchTicket() bot.State {
-	trn := b.GetTrainer()
-	if trn == nil {
+	if b.trn == nil {
 		b.say("Couldn't verify your token. Let's get a new one.")
 		return b.SignIn
 	}
@@ -187,16 +189,15 @@ func (b *SafariBot) FetchTicket() bot.State {
 	if !b.yes("You'd like to visit %s?", zone.Region) {
 		return b.FetchTicket
 	}
-	tkt, err := b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: trn, Zone: zone})
+	b.tkt, err = b.saf.Enter(b.ctx, &pbf.Ticket{Trainer: b.trn, Zone: zone})
 	if err != nil {
 		return b.Errorf("There was a problem geting your ticket %s", grpc.ErrorDesc(err))
 	}
-	b.ctx = context.WithValue(b.ctx, TicketKey, tkt)
 	return b.WalkAround
 }
 
 func (b *SafariBot) WalkAround() bot.State {
-	tkt := b.GetTicket()
+	tkt := b.Ticket()
 	if tkt.Expires.Encounters <= 0 { //TODO time expiry on canceled ctx
 		b.say("Ding Ding! Your ticket is expired!")
 		if b.yes("Would you like to get a new ticket?") {
@@ -257,6 +258,7 @@ func (b SafariBot) Encounter() bot.State {
 			if err != nil {
 				return b.Errorf(grpc.ErrorDesc(err))
 			}
+			b.trn, err = b.reg.GetTrainer(b.ctx, b.Trainer())
 			return b.WalkAround
 		case <-msgs:
 			b.say("What's your move? (ball, rock, bait, run)")
@@ -293,14 +295,12 @@ func (b *SafariBot) Exit() bot.State {
 	return nil
 }
 
-func (b *SafariBot) GetTrainer() *pbf.Trainer {
-	u, _ := b.ctx.Value(TrainerKey).(*pbf.Trainer)
-	return u
+func (b *SafariBot) Trainer() *pbf.Trainer {
+	return b.trn
 }
 
-func (b *SafariBot) GetTicket() *pbf.Ticket {
-	u, _ := b.ctx.Value(TicketKey).(*pbf.Ticket)
-	return u
+func (b *SafariBot) Ticket() *pbf.Ticket {
+	return b.tkt
 }
 
 func (b *SafariBot) Context() context.Context {
@@ -309,9 +309,7 @@ func (b *SafariBot) Context() context.Context {
 
 // This decrs the local ticket, the server's ticket decrs on it's own
 func (b *SafariBot) decrTicket() {
-	tkt := b.GetTicket()
-	tkt.Expires.Encounters -= 1
-	b.ctx = context.WithValue(b.ctx, TicketKey, tkt)
+	b.tkt.Expires.Encounters -= 1
 }
 
 func (b *SafariBot) say(format string, v ...interface{}) {
