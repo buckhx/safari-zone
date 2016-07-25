@@ -23,13 +23,24 @@ func main() {
 		{
 			Name: "pokedex",
 			Action: func(c *cli.Context) error {
-				fmt.Println("added task: ", c.Args().First())
+				addr := fmt.Sprint("", c.String("port"))
+				reg := c.String("registry")
+				data := c.String("data")
+				fmt.Printf("addr: %s, reg: %s, data: %s", addr, reg, data)
 				return nil
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "p, port",
 					Value: "50051",
+				},
+				cli.StringFlag{
+					Name:  "r, registry",
+					Value: "localhost:50052",
+				},
+				cli.StringFlag{
+					Name:  "d, data",
+					Value: "pokedex.csv",
 				},
 			},
 		},
@@ -59,13 +70,24 @@ func main() {
 		{
 			Name: "safari",
 			Action: func(c *cli.Context) error {
-				fmt.Println("added task: ", c.Args().First())
+				addr := fmt.Sprint("", c.String("port"))
+				reg := c.String("registry")
+				pdx := c.String("pokedex")
+				fmt.Printf("addr: %s, reg: %s, data: %s", addr, reg, pdx)
 				return nil
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:  "p, port",
 					Value: "50053",
+				},
+				cli.StringFlag{
+					Name:  "r, registry",
+					Value: "localhost:50052",
+				},
+				cli.StringFlag{
+					Name:  "pokedex",
+					Value: "localhost:50051",
 				},
 			},
 		},
