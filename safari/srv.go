@@ -60,11 +60,14 @@ func (s Service) Version() string {
 //
 // A pokemon will be added to the event and timestmap set if one is encountered
 func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, error) {
+	if req.Zone.Region != pbf.KANTO {
+		return nil, grpc.Errorf(codes.FailedPrecondition, "That zone is under construction")
+	}
 	claims, _ := auth.ClaimsFromContext(ctx)
 	if req.Trainer.Uid != claims.Subject {
 		return nil, grpc.Errorf(codes.PermissionDenied, "Claims not scoped to requested trainer")
 	}
-	if tkt, ok := sf.tix.Get(claims.Subject).(*pbf.Ticket); ok && tkt != nil { //TODO move this to the warden
+	if tkt, ok := sf.tix.Get(claims.Subject).(*pbf.Ticket); ok { //TODO move this to the warden
 		return tkt, nil
 	}
 	exp := &pbf.Ticket_Expiry{Time: time.Now().Add(10 * time.Minute).Unix(), Encounters: 5}
