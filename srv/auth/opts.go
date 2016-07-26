@@ -2,6 +2,7 @@ package auth
 
 import (
 	"crypto"
+	"crypto/ecdsa"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -25,14 +26,14 @@ type Opts struct {
 	// UnsecuredMethods are grpc method strings that skip authorization
 	UnsecuredMethods []string
 	// CertURI is the uri for the publc JWK that verifies access tokens
-	CertURI string
+	Cert string
 }
 
 func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 	switch {
 	//case strings.HasPrefix(o.CertURI, "https"):
-	case strings.HasPrefix(o.CertURI, "http"):
-		r, e := http.Get(o.CertURI)
+	case strings.HasPrefix(o.Cert, "http"):
+		r, e := http.Get(o.Cert)
 		if e != nil {
 			err = e
 			break
@@ -60,11 +61,11 @@ func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 		if pub, ok = jwk.Key.(crypto.PublicKey); !ok {
 			err = fmt.Errorf("JWK.Key not a crypto.PublicKey")
 		}
-		//case strings.HasPrefix(o.CertURI, "http"):
-		// TODO verify that this is the correct behavior (HTTPS required to fetch cert)
-		//err = fmt.Errorf("HTTPS required for network AuthOpts.CertURI")
-	case exists(o.CertURI):
-		f, e := os.Open(o.CertURI)
+	//case strings.HasPrefix(o.CertURI, "http"):
+	// TODO verify that this is the correct behavior (HTTPS required to fetch cert)
+	//err = fmt.Errorf("HTTPS required for network AuthOpts.CertURI")
+	case exists(o.Cert): //file:// prefix?
+		f, e := os.Open(o.Cert)
 		if e != nil {
 			err = e
 			break
@@ -74,13 +75,15 @@ func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 			err = e
 			break
 		}
-		if key, e := LoadECPrivateKey(raw); e == nil {
+		var key *ecdsa.PrivateKey
+		if key, err = LoadECPrivateKey(raw); err == nil {
 			pub = key.Public()
-		} else {
-			err = e
 		}
 	default:
-		err = fmt.Errorf("AuthOpts.CertURI must be a local file or HTTPS network resource")
+		var key *ecdsa.PrivateKey
+		if key, err = LoadECPrivateKey([]byte(o.Cert)); err == nil {
+			pub = key.Public()
+		}
 	}
 	return
 }

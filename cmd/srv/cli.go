@@ -5,15 +5,8 @@ import (
 	"os"
 
 	"github.com/buckhx/safari-zone/registry"
+	"github.com/buckhx/safari-zone/srv"
 	"github.com/urfave/cli"
-)
-
-const (
-	pdxAddr = ":50051"
-	regAddr = ":50052"
-	sfrAddr = ":50053"
-	gwAddr  = ":8080"
-	pemfile = "dev/reg.pem"
 )
 
 func main() {
@@ -23,24 +16,52 @@ func main() {
 		{
 			Name: "pokedex",
 			Action: func(c *cli.Context) error {
-				addr := fmt.Sprint("", c.String("port"))
+				gw := fmt.Sprint(":", c.String("gateway"))
+				addr := fmt.Sprint(":", c.String("port"))
 				reg := c.String("registry")
 				data := c.String("data")
-				fmt.Printf("addr: %s, reg: %s, data: %s", addr, reg, data)
+				fmt.Printf("addr: %s, gw: %s, reg: %s, data: %s", addr, gw, reg, data)
+				/*
+
+					pdx, err := pokedex.NewService(pokedex.Opts{
+						Address: addr,
+						Registry: reg,
+						Data: data,
+					})
+					if err != nil {
+						return err
+					}
+					done := make(chan error)
+					go func() {
+						done <- reg.Listen()
+					}()
+					go func() {
+						done <- srv.NewGateway(gw, reg).Serve()
+					}()
+					return <-done
+				*/
 				return nil
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "p, port",
-					Value: "50051",
+					Name:   "p, port",
+					Value:  "50051",
+					EnvVar: "POKEDEX_PORT",
 				},
 				cli.StringFlag{
-					Name:  "r, registry",
-					Value: "localhost:50052",
+					Name:   "gw, gateway",
+					Value:  "8080",
+					EnvVar: "POKEDEX_GATEWAY",
 				},
 				cli.StringFlag{
-					Name:  "d, data",
-					Value: "pokedex.csv",
+					Name:   "r, registry",
+					Value:  "localhost:50052",
+					EnvVar: "POKEDEX_REGISTRY",
+				},
+				cli.StringFlag{
+					Name:   "d, data",
+					Value:  "pokedex.csv",
+					EnvVar: "POKEDEX_DATA",
 				},
 			},
 		},
@@ -48,22 +69,37 @@ func main() {
 			Name: "registry",
 			Action: func(c *cli.Context) error {
 				pem := c.String("key")
+				gw := fmt.Sprint(":", c.String("gateway"))
 				addr := fmt.Sprint(":", c.String("port"))
 				reg, err := registry.NewService(pem, addr)
 				if err != nil {
 					return err
 				}
-				return reg.Listen()
+				done := make(chan error)
+				go func() {
+					done <- reg.Listen()
+				}()
+				go func() {
+					done <- srv.NewGateway(gw, reg).Serve()
+				}()
+				return <-done
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "p, port",
-					Value: "50052",
+					Name:   "p, port",
+					Value:  "50052",
+					EnvVar: "REGISTRY_PORT",
 				},
 				cli.StringFlag{
-					Name:  "k, key",
-					Value: "reg.pem",
-					Usage: "Path to the private key .pem for token signing",
+					Name:   "gw, gateway",
+					Value:  "8080",
+					EnvVar: "REGISTRY_GATEWAY",
+				},
+				cli.StringFlag{
+					Name:   "k, key",
+					Value:  "reg.pem",
+					EnvVar: "REGISTRY_KEY",
+					Usage:  "Path to the private key .pem for token signing",
 				},
 			},
 		},
@@ -78,16 +114,19 @@ func main() {
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:  "p, port",
-					Value: "50053",
+					Name:   "p, port",
+					Value:  "50053",
+					EnvVar: "SAFARI_PORT",
 				},
 				cli.StringFlag{
-					Name:  "r, registry",
-					Value: "localhost:50052",
+					Name:   "r, registry",
+					Value:  "localhost:50052",
+					EnvVar: "SAFARI_REGISTRY",
 				},
 				cli.StringFlag{
-					Name:  "pokedex",
-					Value: "localhost:50051",
+					Name:   "pokedex",
+					Value:  "localhost:50051",
+					EnvVar: "SAFARI_POKEDEX",
 				},
 			},
 		},
@@ -96,6 +135,13 @@ func main() {
 }
 
 /*
+const (
+	pdxAddr = ":50051"
+	regAddr = ":50052"
+	sfrAddr = ":50053"
+	gwAddr  = ":8080"
+	pemfile = "dev/reg.pem"
+)
 func main() {
 	reg, err := registry.NewService(pemfile, regAddr)
 	if err != nil {

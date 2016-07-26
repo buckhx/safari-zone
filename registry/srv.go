@@ -150,7 +150,7 @@ func (s *Service) Listen() error {
 	}
 	opts := srv.Opts{
 		Auth: auth.Opts{
-			CertURI: "dev/reg.pem",
+			Cert: "dev/reg.pem",
 			UnsecuredMethods: []string{
 				"/buckhx.safari.registry.Registry/Certificate",
 				"/buckhx.safari.registry.Registry/Register",

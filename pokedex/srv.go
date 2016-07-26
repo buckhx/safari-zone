@@ -19,24 +19,23 @@ const registryAddr = "localhost:50052" //TODO make this part of the opts
 
 type Service struct {
 	*Pokedex
-	addr string
-	opts srv.Opts
+	opts Opts
 	reg  pbf.RegistryClient
 }
 
-func NewService(addr string) (s srv.Service, err error) {
-	pdx, err := FromCsv("pokedex/pokedex.csv")
+func NewService(opts Opts) (s srv.Service, err error) {
+	pdx, err := opts.LoadData()
+	if err != nil {
+		return
+	}
+	reg, err := opts.RegistryClient()
 	if err != nil {
 		return
 	}
 	s = &Service{
 		Pokedex: pdx,
-		addr:    addr,
-		opts: srv.Opts{
-			Auth: auth.Opts{
-				CertURI: "http://localhost:8080/registry/v0/cert",
-			},
-		},
+		reg:     reg,
+		opts:    opts,
 	}
 	return
 }
@@ -74,21 +73,15 @@ func (s *Service) GetPokemon(ctx context.Context, req *pbf.Pokemon) (*pbf.Pokemo
 }
 
 func (s *Service) Listen() error {
-	tcp, err := net.Listen("tcp", s.addr)
+	tcp, err := net.Listen("tcp", s.opts.Address)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	rpc, err := srv.ConfigureGRPC(s.opts)
 	if err != nil {
-		log.Println(err)
 		return err
 	}
 	pbf.RegisterPokedexServer(rpc, s)
-	err = s.bindRegistry(registryAddr)
-	if err != nil {
-		return nil
-	}
 	log.Printf("Service %T listening at %s", s, s.addr)
 	return rpc.Serve(tcp)
 }
@@ -105,13 +98,4 @@ func (s *Service) Mux() (http.Handler, error) {
 		mux = nil
 	}
 	return http.Handler(mux), err
-}
-
-func (s *Service) bindRegistry(addr string) error {
-	if conn, err := grpc.Dial(addr, grpc.WithInsecure()); err == nil {
-		s.reg = pbf.NewRegistryClient(conn)
-	} else {
-		return err
-	}
-	return nil
 }

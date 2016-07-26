@@ -42,7 +42,7 @@ func NewService(addr string) (srv.Service, error) {
 		opts: srv.Opts{
 			Addr: addr,
 			Auth: auth.Opts{
-				CertURI: "http://localhost:8080/registry/v0/cert",
+				Cert: "http://localhost:8080/registry/v0/cert",
 			},
 		},
 	}, nil
