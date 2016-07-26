@@ -99,8 +99,6 @@ func (r *registry) authenticate(req *pbf.Trainer) (tok *pbf.Token, err error) {
 	case !ok:
 		err = fmt.Errorf("not registered")
 	case v.Password != util.Hash(req.Password):
-		fmt.Println("DB ", v.Password)
-		fmt.Println("REQ ", util.Hash(req.Password))
 		err = fmt.Errorf("invalid login credentials")
 	case !auth.Claims{Scope: v.Scope}.HasScope(req.Scope...):
 		err = fmt.Errorf("invalid scope")

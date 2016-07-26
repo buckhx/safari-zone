@@ -1,0 +1,7 @@
+FROM alpine
+
+MAINTAINER buckhx
+
+ENV SRV_HOME=/opt/safari-zone SRV_BIN=/opt/safari-zone/bin/safari-srv
+RUN mkdir -p $(dirname ${SRV_BIN}) && ln -s ${SRV_BIN} /usr/local/bin/safari-srv
+ADD dist/safari-srv ${SRV_BIN}

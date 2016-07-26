@@ -18,8 +18,8 @@ type Service interface {
 }
 
 type Opts struct {
-	Addr string
-	Auth auth.Opts
+	Address string
+	Auth    auth.Opts
 }
 
 // ConfigureGRPC configures a GRPC Server w/ the given opts

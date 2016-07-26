@@ -1,0 +1,129 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "pokedex.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/pokemon/{number}": {
+      "get": {
+        "summary": "GetPokemon method retrieves info about the pokemon at the given number",
+        "description": "Any other supplied attributes will be ignored",
+        "operationId": "GetPokemon",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/PokemonCollection"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "number",
+            "in": "path",
+            "required": true,
+            "type": "integer",
+            "format": "int32"
+          }
+        ],
+        "tags": [
+          "Pokedex"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PokemonCollection": {
+      "type": "object",
+      "properties": {
+        "pokemon": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pokedexPokemon"
+          }
+        }
+      },
+      "title": "Pokemon_Collection is self evident"
+    },
+    "pokedexPokemon": {
+      "type": "object",
+      "properties": {
+        "catch_rate": {
+          "type": "integer",
+          "format": "int32",
+          "title": "CatchRate is chance of catching on a scale of 1-255"
+        },
+        "name": {
+          "type": "string",
+          "format": "string",
+          "title": "Name is the English name of the pokemon"
+        },
+        "nick_name": {
+          "type": "string",
+          "format": "string",
+          "title": "NickName is the name this pokemon has been given by it's trainer"
+        },
+        "number": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number is the canonical pokemon identifier"
+        },
+        "speed": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Speed is how fast the pokemon is on a scale 1-100"
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pokedexPokemonType"
+          },
+          "title": "Type is the type of this pokemon"
+        },
+        "uid": {
+          "type": "string",
+          "format": "string",
+          "title": "Uid is the unique identifier for this individual pokemon"
+        }
+      },
+      "title": "Pokemon message is info about a pokemon"
+    },
+    "pokedexPokemonType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "NORMAL",
+        "FIGHTING",
+        "FLYING",
+        "POISON",
+        "GROUND",
+        "ROCK",
+        "BUG",
+        "GHOST",
+        "STEEL",
+        "FIRE",
+        "WATER",
+        "GRASS",
+        "ELECTRIC",
+        "PSYCHIC",
+        "ICE",
+        "DRAGON",
+        "DARK",
+        "FAIRY"
+      ],
+      "default": "UNKNOWN",
+      "title": "Pokemon_Type is the canonical type of a pokemon"
+    }
+  }
+}

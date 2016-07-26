@@ -1,0 +1,12 @@
+version: '2'
+services:
+  registry:
+    image: registry
+    ports:
+      - "50052:50051"
+  pokedex:
+    image: pokedex
+    ports:
+      - "50053:50051"
+    links:
+      - registry

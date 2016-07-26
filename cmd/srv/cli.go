@@ -4,42 +4,42 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/buckhx/safari-zone/pokedex"
 	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/srv"
 	"github.com/urfave/cli"
 )
 
+var Version string
+
 func main() {
 	app := cli.NewApp()
 	app.Name = "Safari Zone Services"
+	app.Version = Version
 	app.Commands = []cli.Command{
 		{
 			Name: "pokedex",
 			Action: func(c *cli.Context) error {
-				gw := fmt.Sprint(":", c.String("gateway"))
 				addr := fmt.Sprint(":", c.String("port"))
 				reg := c.String("registry")
 				data := c.String("data")
-				fmt.Printf("addr: %s, gw: %s, reg: %s, data: %s", addr, gw, reg, data)
-				/*
-
-					pdx, err := pokedex.NewService(pokedex.Opts{
-						Address: addr,
-						Registry: reg,
-						Data: data,
-					})
-					if err != nil {
-						return err
-					}
-					done := make(chan error)
-					go func() {
-						done <- reg.Listen()
-					}()
-					go func() {
-						done <- srv.NewGateway(gw, reg).Serve()
-					}()
-					return <-done
-				*/
+				pdx, err := pokedex.NewService(pokedex.Opts{
+					Opts:     srv.Opts{Address: addr},
+					Registry: reg,
+					Data:     data,
+				})
+				if err != nil {
+					return err
+				}
+				done := make(chan error)
+				go func() {
+					done <- pdx.Listen()
+				}()
+				go func() {
+					gw := fmt.Sprint(":", c.String("gateway"))
+					done <- srv.NewGateway(gw, pdx).Serve()
+				}()
+				return <-done
 				return nil
 			},
 			Flags: []cli.Flag{
@@ -69,9 +69,11 @@ func main() {
 			Name: "registry",
 			Action: func(c *cli.Context) error {
 				pem := c.String("key")
-				gw := fmt.Sprint(":", c.String("gateway"))
 				addr := fmt.Sprint(":", c.String("port"))
-				reg, err := registry.NewService(pem, addr)
+				reg, err := registry.NewService(registry.Opts{
+					Opts:    srv.Opts{Address: addr},
+					KeyPath: pem,
+				})
 				if err != nil {
 					return err
 				}
@@ -80,6 +82,7 @@ func main() {
 					done <- reg.Listen()
 				}()
 				go func() {
+					gw := fmt.Sprint(":", c.String("gateway"))
 					done <- srv.NewGateway(gw, reg).Serve()
 				}()
 				return <-done
@@ -87,7 +90,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "p, port",
-					Value:  "50052",
+					Value:  "50051",
 					EnvVar: "REGISTRY_PORT",
 				},
 				cli.StringFlag{
@@ -115,7 +118,7 @@ func main() {
 			Flags: []cli.Flag{
 				cli.StringFlag{
 					Name:   "p, port",
-					Value:  "50053",
+					Value:  "50051",
 					EnvVar: "SAFARI_PORT",
 				},
 				cli.StringFlag{
@@ -125,7 +128,7 @@ func main() {
 				},
 				cli.StringFlag{
 					Name:   "pokedex",
-					Value:  "localhost:50051",
+					Value:  "localhost:50053",
 					EnvVar: "SAFARI_POKEDEX",
 				},
 			},

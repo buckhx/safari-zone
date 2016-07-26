@@ -40,7 +40,7 @@ func NewService(addr string) (srv.Service, error) {
 		warden: newGame(),
 		reg:    reg,
 		opts: srv.Opts{
-			Addr: addr,
+			Address: addr,
 			Auth: auth.Opts{
 				Cert: "http://localhost:8080/registry/v0/cert",
 			},
@@ -158,7 +158,7 @@ func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
 }
 
 func (s *Service) Listen() error {
-	tcp, err := net.Listen("tcp", s.opts.Addr)
+	tcp, err := net.Listen("tcp", s.opts.Address)
 	if err != nil {
 		return err
 	}
@@ -167,14 +167,14 @@ func (s *Service) Listen() error {
 		return err
 	}
 	pbf.RegisterSafariServer(rpc, s)
-	log.Printf("Service %T listening at %s", s, s.opts.Addr)
+	log.Printf("Service %T listening at %s", s, s.opts.Address)
 	return rpc.Serve(tcp)
 }
 
 func (s *Service) Mux() (http.Handler, error) {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterSafariHandlerFromEndpoint(s.ctx, mux, s.opts.Addr, opts)
+	err := pbf.RegisterSafariHandlerFromEndpoint(s.ctx, mux, s.opts.Address, opts)
 	if err != nil {
 		mux = nil
 	}

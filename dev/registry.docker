@@ -1,0 +1,6 @@
+FROM srv
+
+ADD dev/reg.pem ${SRV_HOME}
+CMD safari-srv registry -k ${SRV_HOME}/reg.pem
+
+expose "8080" "50051"

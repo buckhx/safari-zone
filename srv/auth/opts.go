@@ -70,19 +70,25 @@ func (o Opts) fetchCert() (pub crypto.PublicKey, err error) {
 			err = e
 			break
 		}
-		raw, e := ioutil.ReadAll(f)
-		if e != nil {
+		raw, err := ioutil.ReadAll(f)
+		if err != nil {
 			err = e
 			break
 		}
+		fmt.Println("%s", string(raw))
 		var key *ecdsa.PrivateKey
 		if key, err = LoadECPrivateKey(raw); err == nil {
 			pub = key.Public()
 		}
 	default:
-		var key *ecdsa.PrivateKey
-		if key, err = LoadECPrivateKey([]byte(o.Cert)); err == nil {
-			pub = key.Public()
+		jwk := &jose.JsonWebKey{}
+		if err = jwk.UnmarshalJSON([]byte(o.Cert)); err != nil {
+			// jwk.Valid()
+			break
+		}
+		var ok bool
+		if pub, ok = jwk.Key.(crypto.PublicKey); !ok {
+			err = fmt.Errorf("JWK.Key not a crypto.PublicKey")
 		}
 	}
 	return

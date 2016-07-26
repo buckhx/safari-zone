@@ -1,8 +1,25 @@
+SRV_BIN="safari-srv"
+VERSION=`git describe --always --tags`
+BUILD_TIME=`date +%FT%T%z`
+LDFLAGS=--ldflags "-extldflags '-static' -X main.Version=${VERSION}"
+PACKAGES=`go list ./... | grep -v /vendor/`
+
 all: proto docs
 
+build: proto 
+	mkdir -p ./dist
+	CGO_ENABLED=0 go build -v ${LDFLAGS} -o ./dist/${SRV_BIN} cmd/srv/cli.go
+	chmod +x ./dist/${SRV_BIN}
+
 clean:
+	rm -rf ./dist
 	rm -rf ./proto/pbf/*
 	rm -rf ./proto/docs/*
+
+docker: build
+	docker build -f dev/srv.docker -t srv .
+	docker build -f dev/registry.docker -t registry .
+	docker build -f dev/pokedex.docker -t pokedex .
 
 eckey:
 	#openssl ecparam -out dev/reg.pem -name secp256k1 -genkey -noout
@@ -51,6 +68,9 @@ proto:
 run:
 	go run cmd/srv/cli.go
 
+test:
+	go test -v $(PACKAGES)
+
 vendor:
 	govendor init
 	govendor add -v +external
@@ -59,6 +79,7 @@ vendor:
 
 .PHONY: \
 	all \
+	docker \
 	docs \
 	get \
 	proto \

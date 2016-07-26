@@ -1,6 +1,7 @@
 package pokedex
 
 import (
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -14,8 +15,6 @@ import (
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 )
-
-const registryAddr = "localhost:50052" //TODO make this part of the opts
 
 type Service struct {
 	*Pokedex
@@ -31,6 +30,14 @@ func NewService(opts Opts) (s srv.Service, err error) {
 	reg, err := opts.RegistryClient()
 	if err != nil {
 		return
+	}
+	cert, err := reg.Certificate(context.Background(), &pbf.Trainer{})
+	if err != nil { //TODO wrap errors instead
+		err = fmt.Errorf("Error fetching cert %s", err)
+		return
+	}
+	opts.Auth = auth.Opts{
+		Cert: string(cert.Jwk),
 	}
 	s = &Service{
 		Pokedex: pdx,
@@ -77,12 +84,12 @@ func (s *Service) Listen() error {
 	if err != nil {
 		return err
 	}
-	rpc, err := srv.ConfigureGRPC(s.opts)
+	rpc, err := srv.ConfigureGRPC(s.opts.Opts)
 	if err != nil {
 		return err
 	}
 	pbf.RegisterPokedexServer(rpc, s)
-	log.Printf("Service %T listening at %s", s, s.addr)
+	log.Printf("Service %T listening at %s", s, s.opts.Address)
 	return rpc.Serve(tcp)
 }
 
@@ -93,7 +100,7 @@ func (s *Service) Mux() (http.Handler, error) {
 
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterPokedexHandlerFromEndpoint(ctx, mux, s.addr, opts)
+	err := pbf.RegisterPokedexHandlerFromEndpoint(ctx, mux, s.opts.Address, opts)
 	if err != nil {
 		mux = nil
 	}

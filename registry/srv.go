@@ -16,19 +16,27 @@ import (
 	"golang.org/x/net/context"
 )
 
-type Service struct {
-	*registry
-	addr string
+var unsecured = []string{
+	"/buckhx.safari.registry.Registry/Certificate",
+	"/buckhx.safari.registry.Registry/Register",
+	"/buckhx.safari.registry.Registry/Access",
+	"/buckhx.safari.registry.Registry/Enter",
 }
 
-func NewService(pemfile, addr string) (srv.Service, error) {
-	r, err := newreg(pemfile)
+type Service struct {
+	*registry
+	opts Opts
+}
+
+func NewService(opts Opts) (srv.Service, error) {
+	r, err := newreg(opts.KeyPath)
 	if err != nil {
 		return nil, err
 	}
+	opts.Auth.UnsecuredMethods = unsecured
 	return &Service{
 		registry: r,
-		addr:     addr,
+		opts:     opts,
 	}, nil
 }
 
@@ -144,27 +152,21 @@ func (s *Service) Certificate(ctx context.Context, in *pbf.Trainer) (*pbf.Cert, 
 }
 
 func (s *Service) Listen() error {
-	tcp, err := net.Listen("tcp", s.addr)
+	tcp, err := net.Listen("tcp", s.opts.Address)
 	if err != nil {
 		return err
 	}
-	opts := srv.Opts{
-		Auth: auth.Opts{
-			Cert: "dev/reg.pem",
-			UnsecuredMethods: []string{
-				"/buckhx.safari.registry.Registry/Certificate",
-				"/buckhx.safari.registry.Registry/Register",
-				"/buckhx.safari.registry.Registry/Access",
-				"/buckhx.safari.registry.Registry/Enter",
-			},
-		},
+	cert, err := s.mint.MarshalPublicJwk()
+	if err != nil {
+		return err
 	}
-	rpc, err := srv.ConfigureGRPC(opts)
+	s.opts.Opts.Auth.Cert = string(cert)
+	rpc, err := srv.ConfigureGRPC(s.opts.Opts)
 	if err != nil {
 		return err
 	}
 	pbf.RegisterRegistryServer(rpc, s)
-	log.Printf("Service %T listening at %s", s, s.addr)
+	log.Printf("Service %T listening at %s", s, s.opts.Address)
 	return rpc.Serve(tcp)
 }
 
@@ -172,7 +174,7 @@ func (s *Service) Mux() (http.Handler, error) {
 	ctx := context.Background()
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterRegistryHandlerFromEndpoint(ctx, mux, s.addr, opts)
+	err := pbf.RegisterRegistryHandlerFromEndpoint(ctx, mux, s.opts.Address, opts)
 	if err != nil {
 		mux = nil
 	}
