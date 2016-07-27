@@ -2,17 +2,43 @@
 
 A set of services demonstrating GRPC integration
 
+# Services
+
+## Registry
+
+The registry service is in charge of authorization/authentication.
+It manages accounts and issues tokens for other services to use.
+The tokens are signed with ECDSA private key and the public key is available at an endpoint.
+Tokens are scoped to roles.
+
+## Pokedex
+
+The pokedex service is meant to mimic a content API.
+A user can only see info on pokemon they have caught, while a service has full access.
+
+## Warden
+
+The warden service is the meat of the gameplay and is meant to demonstrate a more complex service.
+This service issues to tickets w/ expiries for battles.
+The battles are delivered via bi-directional streams.
+
+# Clients
+
+## Bot
+
+There is a bot client that manages the flow and user interaction via a state machine.
+
+## GUI
+
+The gui has an embedded bot and exposes a UI
 
 ## TODO
-
-* Busines logic
-* Containerize services
 
 ## Not Implemented
 
 * Logging Interceptor
 * Panic Revcovery Interceptor
-* Messaging
+* api proxy
 
 ## Notes
 
