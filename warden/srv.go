@@ -1,4 +1,4 @@
-package safari
+package warden
 
 import (
 	"fmt"
@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	wardenKey    = "buckhx.safari.zone"
-	wardenSecret = "zone-secret"
+	wardenKey    = "buckhx.safari.warden"
+	wardenSecret = "warden-secret"
 )
 
 // Server API for Safari service
@@ -92,7 +92,7 @@ func (sf *Service) Enter(ctx context.Context, req *pbf.Ticket) (*pbf.Ticket, err
 // Encounter will attempt to catch the pokemon
 //
 // If caught, this pokemon will be deposited into the Trainer's PC
-func (sf *Service) Encounter(stream pbf.Safari_EncounterServer) error {
+func (sf *Service) Encounter(stream pbf.Warden_EncounterServer) error {
 	pok, err := sf.spawn(stream.Context())
 	if err != nil {
 		return err
@@ -177,7 +177,7 @@ func (s *Service) Listen() error {
 	if err != nil {
 		return err
 	}
-	pbf.RegisterSafariServer(rpc, s)
+	pbf.RegisterWardenServer(rpc, s)
 	log.Printf("Service %T listening at %s", s, s.opts.Address)
 	return rpc.Serve(tcp)
 }
@@ -185,7 +185,7 @@ func (s *Service) Listen() error {
 func (s *Service) Mux() (http.Handler, error) {
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterSafariHandlerFromEndpoint(s.ctx, mux, s.opts.Address, opts)
+	err := pbf.RegisterWardenHandlerFromEndpoint(s.ctx, mux, s.opts.Address, opts)
 	if err != nil {
 		mux = nil
 	}

@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package buckhx.safari.zone;
+package buckhx.safari.warden;
 option go_package = "pbf";
 
 import "google/api/annotations.proto";
@@ -8,8 +8,8 @@ import "registry.proto";
 import "pokedex.proto";
 import "msg.proto";
 
-// Safari is a service that trainers join and catch pokemon on
-service Safari {
+// Warden is a service that trainers join and catch pokemon on
+service Warden {
 	// Encounter might add a pokemon to the event
 	//
 	// A pokemon will be added to the event and timestmap set if one is encountered

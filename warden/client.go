@@ -1,4 +1,4 @@
-package safari
+package warden
 
 import (
 	"github.com/buckhx/safari-zone/proto/pbf"
@@ -6,7 +6,7 @@ import (
 )
 
 type Client struct {
-	pbf.SafariClient
+	pbf.WardenClient
 	*grpc.ClientConn
 	addr string
 }
@@ -21,9 +21,9 @@ func Dial(addr string) (*Client, error) {
 	if err != nil {
 		return nil, err
 	}
-	cli := pbf.NewSafariClient(conn)
+	cli := pbf.NewWardenClient(conn)
 	return &Client{
-		SafariClient: cli,
+		WardenClient: cli,
 		ClientConn:   conn,
 		addr:         addr,
 	}, nil

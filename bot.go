@@ -13,9 +13,9 @@ import (
 
 	"github.com/buckhx/safari-zone/proto/pbf"
 	"github.com/buckhx/safari-zone/registry"
-	"github.com/buckhx/safari-zone/safari"
 	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/buckhx/safari-zone/util/bot"
+	"github.com/buckhx/safari-zone/warden"
 )
 
 type CtxKey int
@@ -29,7 +29,7 @@ type SafariBot struct {
 	bot.Bot
 	opts Opts
 	reg  *registry.Client
-	saf  *safari.Client
+	saf  *warden.Client
 	ctx  context.Context
 	trn  *pbf.Trainer
 	tkt  *pbf.Ticket

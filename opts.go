@@ -2,7 +2,7 @@ package safaribot
 
 import (
 	"github.com/buckhx/safari-zone/registry"
-	"github.com/buckhx/safari-zone/safari"
+	"github.com/buckhx/safari-zone/warden"
 )
 
 type Opts struct {
@@ -22,6 +22,6 @@ func (o Opts) DialRegistry() (*registry.Client, error) {
 	return registry.Dial(o.RegistryAddress)
 }
 
-func (o Opts) DialSafari() (*safari.Client, error) {
-	return safari.Dial(o.SafariAddress)
+func (o Opts) DialSafari() (*warden.Client, error) {
+	return warden.Dial(o.SafariAddress)
 }

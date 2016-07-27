@@ -9,7 +9,7 @@
 		msg.proto
 		pokedex.proto
 		registry.proto
-		safari.proto
+		warden.proto
 
 	It has these top-level messages:
 		Timestamp
