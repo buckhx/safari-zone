@@ -16,7 +16,7 @@ const (
 )
 
 func main() {
-	safbot := safaribot.New(safaribot.Opts{
+	safbot := safari.NewBot(safari.Opts{
 		RegistryAddress: regAddr,
 		SafariAddress:   safAddr,
 	})

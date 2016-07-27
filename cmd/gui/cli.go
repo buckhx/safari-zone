@@ -13,11 +13,11 @@ const (
 )
 
 func main() {
-	opts := safaribot.Opts{
+	opts := safari.Opts{
 		RegistryAddress: regAddr,
 		SafariAddress:   safAddr,
 	}
-	c := safaribot.NewGUI(opts)
+	c := safari.NewGUI(opts)
 	err := c.Run()
 	if err != nil {
 		log.Fatal(err)

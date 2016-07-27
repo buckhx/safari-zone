@@ -1,4 +1,4 @@
-package safaribot
+package safari
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ const (
 )
 
 type GUI struct {
-	bot     *SafariBot
+	bot     *Bot
 	header  *ui.Par
 	pc      ListPanel
 	trainer ListPanel
@@ -28,7 +28,7 @@ type GUI struct {
 
 //func NewGUI(bot *SafariBot) *GUI {
 func NewGUI(opts Opts) *GUI {
-	b := New(opts)
+	b := NewBot(opts)
 	return &GUI{
 		bot:     b,
 		header:  header(),

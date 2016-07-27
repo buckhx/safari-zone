@@ -1,4 +1,4 @@
-package safaribot
+package safari
 
 import (
 	"fmt"

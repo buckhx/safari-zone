@@ -1,4 +1,4 @@
-package safaribot
+package safari
 
 import (
 	"github.com/buckhx/safari-zone/registry"

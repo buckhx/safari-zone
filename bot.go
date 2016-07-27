@@ -1,4 +1,4 @@
-package safaribot
+package safari
 
 import (
 	"context"
@@ -18,14 +18,7 @@ import (
 	"github.com/buckhx/safari-zone/warden"
 )
 
-type CtxKey int
-
-const (
-	TrainerKey CtxKey = iota
-	TicketKey
-)
-
-type SafariBot struct {
+type Bot struct {
 	bot.Bot
 	opts Opts
 	reg  *registry.Client
@@ -35,8 +28,8 @@ type SafariBot struct {
 	tkt  *pbf.Ticket
 }
 
-func New(opts Opts) *SafariBot {
-	d := &SafariBot{
+func NewBot(opts Opts) *Bot {
+	d := &Bot{
 		Bot:  bot.New(),
 		opts: opts,
 		ctx:  context.Background(),
@@ -45,11 +38,11 @@ func New(opts Opts) *SafariBot {
 	return d
 }
 
-func (b *SafariBot) Init() bot.State {
+func (b *Bot) Init() bot.State {
 	return b.Connect
 }
 
-func (b *SafariBot) Connect() bot.State {
+func (b *Bot) Connect() bot.State {
 	//b.say("Connecting...")
 	var err error
 	if b.reg, err = b.opts.DialRegistry(); err != nil {
@@ -70,7 +63,7 @@ func (b *SafariBot) Connect() bot.State {
 	return b.Exit
 }
 
-func (b *SafariBot) setcreds(uid, pass string) bot.State {
+func (b *Bot) setcreds(uid, pass string) bot.State {
 	//TODO return err instead of state
 	u := &pbf.Trainer{Uid: uid, Password: pass}
 	ctx := auth.AuthenticateContext(b.ctx, u.Uid, u.Password)
@@ -92,7 +85,7 @@ func (b *SafariBot) setcreds(uid, pass string) bot.State {
 	return b.WalkAround
 }
 
-func (b *SafariBot) SignIn() bot.State {
+func (b *Bot) SignIn() bot.State {
 	if !b.yes("Are you a registered trainer?") {
 		return b.Register
 	}
@@ -125,7 +118,7 @@ func (b *SafariBot) SignIn() bot.State {
 	return b.FetchTicket
 }
 
-func (b *SafariBot) Register() bot.State {
+func (b *Bot) Register() bot.State {
 	b.say("What's your name?")
 	name := b.hear()
 	b.say("Hello %s, what's a secret word or phrase that we can use to identify you?", name)
@@ -171,7 +164,7 @@ func (b *SafariBot) Register() bot.State {
 	return b.SignIn
 }
 
-func (b *SafariBot) FetchTicket() bot.State {
+func (b *Bot) FetchTicket() bot.State {
 	if b.trn == nil {
 		b.say("Couldn't verify your token. Let's get a new one.")
 		return b.SignIn
@@ -193,7 +186,7 @@ func (b *SafariBot) FetchTicket() bot.State {
 	return b.WalkAround
 }
 
-func (b *SafariBot) WalkAround() bot.State {
+func (b *Bot) WalkAround() bot.State {
 	tkt := b.Ticket()
 	if tkt.Expires.Encounters <= 0 { //TODO time expiry on canceled ctx
 		b.say("Ding Ding! Your ticket is expired!")
@@ -218,7 +211,7 @@ func (b *SafariBot) WalkAround() bot.State {
 	return b.Exit
 }
 
-func (b *SafariBot) Encounter() bot.State {
+func (b *Bot) Encounter() bot.State {
 	stream, err := b.saf.Encounter(b.ctx)
 	if err != nil {
 		return b.Errorf(grpc.ErrorDesc(err))
@@ -287,37 +280,37 @@ func (b *SafariBot) Encounter() bot.State {
 	}
 }
 
-func (b *SafariBot) Exit() bot.State {
+func (b *Bot) Exit() bot.State {
 	b.say("Goodbye!")
 	return nil
 }
 
-func (b *SafariBot) Trainer() *pbf.Trainer {
+func (b *Bot) Trainer() *pbf.Trainer {
 	return b.trn
 }
 
-func (b *SafariBot) Ticket() *pbf.Ticket {
+func (b *Bot) Ticket() *pbf.Ticket {
 	return b.tkt
 }
 
-func (b *SafariBot) Context() context.Context {
+func (b *Bot) Context() context.Context {
 	return b.ctx
 }
 
 // This decrs the local ticket, the server's ticket decrs on it's own
-func (b *SafariBot) decrTicket() {
+func (b *Bot) decrTicket() {
 	b.tkt.Expires.Encounters -= 1
 }
 
-func (b *SafariBot) say(format string, v ...interface{}) {
+func (b *Bot) say(format string, v ...interface{}) {
 	b.Msgs <- bot.Msg(fmt.Sprintf(format, v...))
 }
 
-func (b *SafariBot) hear() string {
+func (b *Bot) hear() string {
 	return string(<-b.Cmds)
 }
 
-func (b *SafariBot) yes(format string, v ...interface{}) bool {
+func (b *Bot) yes(format string, v ...interface{}) bool {
 	b.say(format, v...)
 	for {
 		switch strings.ToLower(b.hear()) {
