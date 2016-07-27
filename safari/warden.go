@@ -6,9 +6,7 @@ import (
 
 	"golang.org/x/net/context"
 
-	"github.com/buckhx/safari-zone/pokedex"
 	"github.com/buckhx/safari-zone/proto/pbf"
-	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/buckhx/safari-zone/util"
 	"github.com/buckhx/safari-zone/util/kvc"
@@ -21,21 +19,16 @@ type warden struct {
 	access string
 }
 
-func newGame() *warden {
-	tok, err := registry.FetchAccessToken(registryAddr, "buckhx.safari.zone", "zone-secret")
+func newWarden(opts Opts) (*warden, error) {
+	pdx, err := opts.PokedexClient()
 	if err != nil {
-		panic(err)
-	}
-	pdx, err := pokedex.Dial(pdxAddr, tok)
-	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	return &warden{
-		tix:    kvc.NewMem(),
-		pdx:    pdx,
-		access: tok,
-		ctx:    context.Background(),
-	}
+		tix: kvc.NewMem(),
+		pdx: pdx,
+		ctx: context.Background(),
+	}, nil
 }
 
 func (w *warden) issueTicket(trainer *pbf.Trainer, zone *pbf.Zone, expiry *pbf.Ticket_Expiry) (*pbf.Ticket, error) {

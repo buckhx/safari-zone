@@ -20,31 +20,42 @@ import (
 )
 
 const (
-	registryAddr = "localhost:50052" //TODO make this part of the opts
-	pdxAddr      = "localhost:50051" //TODO make this part of the opts
+	wardenKey    = "buckhx.safari.zone"
+	wardenSecret = "zone-secret"
 )
 
 // Server API for Safari service
 type Service struct {
 	*warden
 	reg  *registry.Client
-	opts srv.Opts
+	opts Opts
 }
 
-func NewService(addr string) (srv.Service, error) {
-	reg, err := registry.Dial(registryAddr)
+func NewService(opts Opts) (srv.Service, error) {
+	reg, err := opts.RegistryClient()
 	if err != nil {
 		return nil, err
 	}
+	cert, err := reg.Certificate(context.Background(), &pbf.Trainer{})
+	if err != nil {
+		return nil, fmt.Errorf("Error fetching cert %s", err)
+	}
+	opts.Auth = auth.Opts{
+		Cert: string(cert.Jwk),
+	}
+	tok, err := reg.Access(context.Background(), &pbf.Token{Key: wardenKey, Secret: wardenSecret})
+	if err != nil {
+		return nil, fmt.Errorf("Error fetching access token %s", err)
+	}
+	opts.srvtok = tok.Access
+	wrdn, err := newWarden(opts)
+	if err != nil {
+		return nil, fmt.Errorf("Error getting the warden %s", err)
+	}
 	return &Service{
-		warden: newGame(),
+		warden: wrdn,
 		reg:    reg,
-		opts: srv.Opts{
-			Address: addr,
-			Auth: auth.Opts{
-				Cert: "http://localhost:8080/registry/v0/cert",
-			},
-		},
+		opts:   opts,
 	}, nil
 }
 
@@ -162,7 +173,7 @@ func (s *Service) Listen() error {
 	if err != nil {
 		return err
 	}
-	rpc, err := srv.ConfigureGRPC(s.opts)
+	rpc, err := srv.ConfigureGRPC(s.opts.Opts)
 	if err != nil {
 		return err
 	}
