@@ -1,7 +1,0 @@
-FROM srv
-
-ADD pokedex/pokedex.csv $SRV_HOME
-
-CMD safari-srv pokedex -r registry:50051 -d $SRV_HOME/pokedex.csv
-
-expose "8080" "50051"

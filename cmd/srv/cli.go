@@ -7,6 +7,7 @@ import (
 	"github.com/buckhx/safari-zone/pokedex"
 	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/srv"
+	"github.com/buckhx/safari-zone/warden"
 	"github.com/urfave/cli"
 )
 
@@ -31,16 +32,7 @@ func main() {
 				if err != nil {
 					return err
 				}
-				done := make(chan error)
-				go func() {
-					done <- pdx.Listen()
-				}()
-				go func() {
-					gw := fmt.Sprint(":", c.String("gateway"))
-					done <- srv.NewGateway(gw, pdx).Serve()
-				}()
-				return <-done
-				return nil
+				return serve(c, pdx)
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -77,15 +69,7 @@ func main() {
 				if err != nil {
 					return err
 				}
-				done := make(chan error)
-				go func() {
-					done <- reg.Listen()
-				}()
-				go func() {
-					gw := fmt.Sprint(":", c.String("gateway"))
-					done <- srv.NewGateway(gw, reg).Serve()
-				}()
-				return <-done
+				return serve(c, reg)
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -107,13 +91,20 @@ func main() {
 			},
 		},
 		{
-			Name: "safari",
+			Name: "warden",
 			Action: func(c *cli.Context) error {
-				addr := fmt.Sprint("", c.String("port"))
+				addr := fmt.Sprint(":", c.String("port"))
 				reg := c.String("registry")
 				pdx := c.String("pokedex")
-				fmt.Printf("addr: %s, reg: %s, data: %s", addr, reg, pdx)
-				return nil
+				wrdn, err := warden.NewService(warden.Opts{
+					Opts:     srv.Opts{Address: addr},
+					Registry: reg,
+					Pokedex:  pdx,
+				})
+				if err != nil {
+					return err
+				}
+				return serve(c, wrdn)
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
@@ -137,45 +128,14 @@ func main() {
 	app.Run(os.Args)
 }
 
-/*
-const (
-	pdxAddr = ":50051"
-	regAddr = ":50052"
-	sfrAddr = ":50053"
-	gwAddr  = ":8080"
-	pemfile = "dev/reg.pem"
-)
-func main() {
-	reg, err := registry.NewService(pemfile, regAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
+func serve(c *cli.Context, svc srv.Service) error {
+	done := make(chan error)
 	go func() {
-		err := reg.Listen()
-		log.Println(err)
-	}()
-	pdx, err := pokedex.NewService(pdxAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	sfr, err := safari.NewService(sfrAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	go func() {
-		err := pdx.Listen()
-		log.Println(err)
+		done <- svc.Listen()
 	}()
 	go func() {
-		err := sfr.Listen()
-		log.Println(err)
+		gw := fmt.Sprint(":", c.String("gateway"))
+		done <- srv.NewGateway(gw, svc).Serve()
 	}()
-	gw := srv.NewGateway(gwAddr, pdx, reg, sfr)
-	err = gw.Serve()
-	log.Fatal(err)
+	return <-done
 }
-
-func runPdx() {
-
-}
-*/

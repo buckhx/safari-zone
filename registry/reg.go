@@ -163,7 +163,7 @@ func (r *registry) bootstrap() {
 		key, secret string
 	}{
 		{key: "buckhx.safari.pokedex", secret: util.Hash("pokedex-secret")},
-		{key: "buckhx.safari.zone", secret: util.Hash("zone-secret")},
+		{key: "buckhx.safari.warden", secret: util.Hash("warden-secret")},
 	}
 	for _, svc := range svcs {
 		r.svcs.Set(svc.key, svc.secret)
