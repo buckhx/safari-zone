@@ -57,3 +57,9 @@ ASH_KEY=$(curl -s "http://localhost:8080/registry/v0/trainer/037c4d7b/auth" -H "
 curl "http://localhost:8080/registry/v0/trainer/52fdfc07" -H "Authorization: Bearer ${OAK_KEY}"; echo
 curl "http://localhost:8080/registry/v0/trainer/037c4d7b" -H "Authorization: Bearer ${ASH_KEY}"; echo
 ```
+
+Deploy
+------
+
+* docker
+* minikube

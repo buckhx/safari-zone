@@ -1,4 +1,4 @@
-FROM srv
+FROM safari/srv
 
 ADD pokedex/pokedex.csv $SRV_HOME
 

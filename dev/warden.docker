@@ -1,4 +1,4 @@
-FROM srv
+FROM safari/srv
 
 CMD safari-srv warden --registry registry:50051 --pokedex pokedex:50051
 

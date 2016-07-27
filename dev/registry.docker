@@ -1,4 +1,4 @@
-FROM srv
+FROM safari/srv
 
 ADD dev/reg.pem ${SRV_HOME}
 CMD safari-srv registry -k ${SRV_HOME}/reg.pem

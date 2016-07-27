@@ -73,14 +73,14 @@ func main() {
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:   "p, port",
-					Value:  "50051",
-					EnvVar: "REGISTRY_PORT",
+					Name:  "p, port",
+					Value: "50051",
+					//EnvVar: "REGISTRY_PORT",
 				},
 				cli.StringFlag{
-					Name:   "gw, gateway",
-					Value:  "8080",
-					EnvVar: "REGISTRY_GATEWAY",
+					Name:  "gw, gateway",
+					Value: "8080",
+					//EnvVar: "REGISTRY_GATEWAY",
 				},
 				cli.StringFlag{
 					Name:   "k, key",
