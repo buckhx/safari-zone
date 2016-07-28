@@ -1,0 +1,342 @@
+{
+  "swagger": "2.0",
+  "info": {
+    "title": "registry.proto",
+    "version": "version not set"
+  },
+  "schemes": [
+    "http",
+    "https"
+  ],
+  "consumes": [
+    "application/json"
+  ],
+  "produces": [
+    "application/json"
+  ],
+  "paths": {
+    "/access": {
+      "post": {
+        "summary": "Access retrieves an access token from a token's key/secret combo",
+        "description": "HTTPS required. Only key/secret will be honored\nAuthorization: Basic BASE64({key:secret})",
+        "operationId": "Access",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/registryToken"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/registryToken"
+            }
+          }
+        ],
+        "tags": [
+          "Registry"
+        ]
+      }
+    },
+    "/cert": {
+      "get": {
+        "summary": "Certificate returns the cert used to verify token signatures",
+        "description": "The cert is in JWK form as described in https://tools.ietf.org/html/rfc7517",
+        "operationId": "Certificate",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/registryCert"
+            }
+          }
+        },
+        "tags": [
+          "Registry"
+        ]
+      }
+    },
+    "/trainer": {
+      "post": {
+        "summary": "Register makes a creates a new trainer in the safari",
+        "description": "Trainer name, password, age \u0026 gender are required. \nAny other supplied fields will be ignored",
+        "operationId": "Register",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/registryTrainer"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "required": true,
+            "schema": {
+              "$ref": "#/definitions/registryTrainer"
+            }
+          }
+        ],
+        "tags": [
+          "Registry"
+        ]
+      }
+    },
+    "/trainer/{uid}": {
+      "get": {
+        "summary": "Get fetchs a trainer",
+        "description": "The populated fields will depend on the auth scope of the token",
+        "operationId": "GetTrainer",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/registryTrainer"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Registry"
+        ]
+      },
+      "put": {
+        "summary": "Get fetchs a trainer",
+        "description": "The populated fields will depend on the auth scope of the token",
+        "operationId": "UpdateTrainer",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/registryTrainer"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Registry"
+        ]
+      }
+    },
+    "/trainer/{uid}/auth": {
+      "get": {
+        "summary": "Enter authenticates a user to retrieve a an access token to authorize requests for a safari",
+        "description": "HTTPS required w/ HTTP basic access authentication via a header\nAuthorization: Basic BASE64({user:pass})",
+        "operationId": "Enter",
+        "responses": {
+          "200": {
+            "description": "Description",
+            "schema": {
+              "$ref": "#/definitions/registryToken"
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "uid",
+            "in": "path",
+            "required": true,
+            "type": "string",
+            "format": "string"
+          }
+        ],
+        "tags": [
+          "Registry"
+        ]
+      }
+    }
+  },
+  "definitions": {
+    "PokemonCollection": {
+      "type": "object",
+      "properties": {
+        "pokemon": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pokedexPokemon"
+          }
+        }
+      },
+      "title": "Pokemon_Collection is self evident"
+    },
+    "TrainerGender": {
+      "type": "string",
+      "enum": [
+        "BOY",
+        "GIRL"
+      ],
+      "default": "BOY"
+    },
+    "msgTimestamp": {
+      "type": "object",
+      "properties": {
+        "unix": {
+          "type": "string",
+          "format": "int64"
+        }
+      }
+    },
+    "pokedexPokemon": {
+      "type": "object",
+      "properties": {
+        "catch_rate": {
+          "type": "integer",
+          "format": "int32",
+          "title": "CatchRate is chance of catching on a scale of 1-255"
+        },
+        "name": {
+          "type": "string",
+          "format": "string",
+          "title": "Name is the English name of the pokemon"
+        },
+        "nick_name": {
+          "type": "string",
+          "format": "string",
+          "title": "NickName is the name this pokemon has been given by it's trainer"
+        },
+        "number": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Number is the canonical pokemon identifier"
+        },
+        "speed": {
+          "type": "integer",
+          "format": "int32",
+          "title": "Speed is how fast the pokemon is on a scale 1-100"
+        },
+        "type": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/pokedexPokemonType"
+          },
+          "title": "Type is the type of this pokemon"
+        },
+        "uid": {
+          "type": "string",
+          "format": "string",
+          "title": "Uid is the unique identifier for this individual pokemon"
+        }
+      },
+      "title": "Pokemon message is info about a pokemon"
+    },
+    "pokedexPokemonType": {
+      "type": "string",
+      "enum": [
+        "UNKNOWN",
+        "NORMAL",
+        "FIGHTING",
+        "FLYING",
+        "POISON",
+        "GROUND",
+        "ROCK",
+        "BUG",
+        "GHOST",
+        "STEEL",
+        "FIRE",
+        "WATER",
+        "GRASS",
+        "ELECTRIC",
+        "PSYCHIC",
+        "ICE",
+        "DRAGON",
+        "DARK",
+        "FAIRY"
+      ],
+      "default": "UNKNOWN",
+      "title": "Pokemon_Type is the canonical type of a pokemon"
+    },
+    "registryCert": {
+      "type": "object",
+      "properties": {
+        "jwk": {
+          "type": "string",
+          "format": "byte"
+        }
+      }
+    },
+    "registryToken": {
+      "type": "object",
+      "properties": {
+        "access": {
+          "type": "string",
+          "format": "string"
+        },
+        "key": {
+          "type": "string",
+          "format": "string"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "string"
+          }
+        },
+        "secret": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    },
+    "registryTrainer": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "gender": {
+          "$ref": "#/definitions/TrainerGender"
+        },
+        "name": {
+          "type": "string",
+          "format": "string"
+        },
+        "password": {
+          "type": "string",
+          "format": "string"
+        },
+        "pc": {
+          "$ref": "#/definitions/PokemonCollection"
+        },
+        "scope": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "string"
+          }
+        },
+        "start": {
+          "$ref": "#/definitions/msgTimestamp"
+        },
+        "uid": {
+          "type": "string",
+          "format": "string"
+        }
+      }
+    }
+  }
+}

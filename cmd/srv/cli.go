@@ -36,14 +36,14 @@ func main() {
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:   "p, port",
-					Value:  "50051",
-					EnvVar: "POKEDEX_PORT",
+					Name:  "p, port",
+					Value: "50051",
+					//EnvVar: "POKEDEX_PORT",
 				},
 				cli.StringFlag{
-					Name:   "gw, gateway",
-					Value:  "8080",
-					EnvVar: "POKEDEX_GATEWAY",
+					Name:  "gw, gateway",
+					Value: "8080",
+					//EnvVar: "POKEDEX_GATEWAY",
 				},
 				cli.StringFlag{
 					Name:   "r, registry",
@@ -108,14 +108,14 @@ func main() {
 			},
 			Flags: []cli.Flag{
 				cli.StringFlag{
-					Name:   "p, port",
-					Value:  "50051",
-					EnvVar: "SAFARI_PORT",
+					Name:  "p, port",
+					Value: "50051",
+					//EnvVar: "SAFARI_PORT",
 				},
 				cli.StringFlag{
-					Name:   "r, registry",
-					Value:  "localhost:50052",
-					EnvVar: "SAFARI_REGISTRY",
+					Name:  "r, registry",
+					Value: "localhost:50052",
+					//EnvVar: "SAFARI_REGISTRY",
 				},
 				cli.StringFlag{
 					Name:   "pokedex",

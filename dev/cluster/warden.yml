@@ -1,34 +1,32 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: pokedex
+  name: warden
   labels:
-    app: pokedex
+    app: warden
 spec:
-  type: NodePort
   ports:
-    - name: grpc
-      port: 50051
-    - name: http
-      port: 8080
-      nodePort: 30080
+    - port: 50051
+      name: grpc
+    - port: 8080
+      name: http
   selector:
-    app: pokedex
+    app: warden
 ---
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: pokedex
+  name: warden
 spec:
   replicas: 2
   template:
     metadata:
       labels:
-        app: pokedex
+        app: warden
     spec:
       containers:
-      - name: pokedex
-        image: safari/pokedex
+      - name: warden
+        image: safari/warden
         resources:
           requests:
             cpu: 100m
