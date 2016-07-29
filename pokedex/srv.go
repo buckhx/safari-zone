@@ -93,14 +93,13 @@ func (s *Service) Listen() error {
 	return rpc.Serve(tcp)
 }
 
-func (s *Service) Mux() (http.Handler, error) {
+func Mux(addr string) (http.Handler, error) {
 	ctx := context.Background()
 	//ctx, cancel := context.WithCancel(ctx)
 	//defer cancel()
-
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterPokedexHandlerFromEndpoint(ctx, mux, s.opts.Address, opts)
+	err := pbf.RegisterPokedexHandlerFromEndpoint(ctx, mux, addr, opts)
 	if err != nil {
 		mux = nil
 	}

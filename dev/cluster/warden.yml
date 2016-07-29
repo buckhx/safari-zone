@@ -10,9 +10,6 @@ spec:
     - name: grpc
       port: 50051
       nodePort: 30053
-    - name: http
-      port: 8080
-      nodePort: 30083
   selector:
     app: warden
 ---
@@ -34,10 +31,6 @@ spec:
           requests:
             cpu: 100m
             memory: 100Mi
-        #env:
-        #- name: GET_HOSTS_FROM
-        #  value: dns
         ports:
         - containerPort: 50051
-        - containerPort: 8080
         imagePullPolicy: Never

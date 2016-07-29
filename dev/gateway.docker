@@ -1,0 +1,5 @@
+FROM safari/srv
+
+CMD safari-srv gateway --registry registry:50051 --pokedex pokedex:50051 --warden warden:50051
+
+expose "8080"

@@ -10,9 +10,6 @@ spec:
     - name: grpc
       port: 50051
       nodePort: 30051
-    - name: http
-      port: 8080
-      nodePort: 30080
   selector:
     app: registry
 ---
@@ -51,5 +48,4 @@ spec:
             memory: 100Mi
         ports:
         - containerPort: 50051
-        - containerPort: 8080
         imagePullPolicy: Never

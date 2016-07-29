@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 
 	"github.com/buckhx/safari-zone/pokedex"
@@ -41,11 +42,6 @@ func main() {
 					//EnvVar: "POKEDEX_PORT",
 				},
 				cli.StringFlag{
-					Name:  "gw, gateway",
-					Value: "8080",
-					//EnvVar: "POKEDEX_GATEWAY",
-				},
-				cli.StringFlag{
 					Name:   "r, registry",
 					Value:  "localhost:50052",
 					EnvVar: "POKEDEX_REGISTRY",
@@ -76,11 +72,6 @@ func main() {
 					Name:  "p, port",
 					Value: "50051",
 					//EnvVar: "REGISTRY_PORT",
-				},
-				cli.StringFlag{
-					Name:  "gw, gateway",
-					Value: "8080",
-					//EnvVar: "REGISTRY_GATEWAY",
 				},
 				cli.StringFlag{
 					Name:   "k, key",
@@ -124,6 +115,68 @@ func main() {
 				},
 			},
 		},
+		{
+			Name: "gateway",
+			Action: func(c *cli.Context) error {
+				addr := fmt.Sprint(":", c.String("port"))
+				reg, err := registry.Mux(c.String("registry"))
+				if err != nil {
+					return err
+				}
+				pdx, err := pokedex.Mux(c.String("pokedex"))
+				if err != nil {
+					return err
+				}
+				wrd, err := warden.Mux(c.String("warden"))
+				if err != nil {
+					return err
+				}
+				gw := srv.Gateway{
+					Address: addr,
+					Routes: []srv.Route{
+						{
+							Path:    "/registry",
+							Handler: reg,
+						},
+						{
+							Path:    "/pokedex",
+							Handler: pdx,
+						},
+						{
+							Path:    "/warden",
+							Handler: wrd,
+						},
+						{
+							Path:    "/ping",
+							Handler: pinger{},
+						},
+					},
+				}
+				return gw.Serve()
+			},
+			Flags: []cli.Flag{
+				cli.StringFlag{
+					Name:  "p, port",
+					Value: "8080",
+					//EnvVar: "SAFARI_PORT",
+				},
+				cli.StringFlag{
+					Name:  "registry",
+					Value: "localhost:50051",
+					//EnvVar: "SAFARI_POKEDEX",
+				},
+				cli.StringFlag{
+					Name:  "pokedex",
+					Value: "localhost:50052",
+					//EnvVar: "SAFARI_REGISTRY",
+				},
+				cli.StringFlag{
+					Name:  "warden",
+					Value: "localhost:50053",
+					//EnvVar: "SAFARI_POKEDEX",
+				},
+			},
+		},
 	}
 	app.Run(os.Args)
 }
@@ -133,9 +186,11 @@ func serve(c *cli.Context, svc srv.Service) error {
 	go func() {
 		done <- svc.Listen()
 	}()
-	go func() {
-		gw := fmt.Sprint(":", c.String("gateway"))
-		done <- srv.NewGateway(gw, svc).Serve()
-	}()
 	return <-done
+}
+
+type pinger struct{}
+
+func (p pinger) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Write([]byte("pong"))
 }

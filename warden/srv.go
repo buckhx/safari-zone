@@ -182,10 +182,11 @@ func (s *Service) Listen() error {
 	return rpc.Serve(tcp)
 }
 
-func (s *Service) Mux() (http.Handler, error) {
+func Mux(addr string) (http.Handler, error) {
+	ctx := context.Background()
 	mux := runtime.NewServeMux()
 	opts := []grpc.DialOption{grpc.WithInsecure()}
-	err := pbf.RegisterWardenHandlerFromEndpoint(s.ctx, mux, s.opts.Address, opts)
+	err := pbf.RegisterWardenHandlerFromEndpoint(ctx, mux, addr, opts)
 	if err != nil {
 		mux = nil
 	}

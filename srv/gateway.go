@@ -2,7 +2,6 @@ package srv
 
 import (
 	"fmt"
-	"log"
 	"net/http"
 )
 
@@ -11,34 +10,28 @@ const (
 	DOCS_ROUTE  = "/docs/"
 )
 
-type Gateway struct {
-	addr string
-	srvs []Service
+type Route struct {
+	Path    string
+	Handler http.Handler
+	//Docs Route
+	//Name string
 }
 
-func NewGateway(addr string, srvs ...Service) Gateway {
-	return Gateway{
-		addr: addr,
-		srvs: srvs,
+type Gateway struct {
+	Address string
+	Routes  []Route
+}
+
+func (gw Gateway) Mux() http.Handler {
+	m := http.NewServeMux()
+	for _, rte := range gw.Routes {
+		fmt.Println("Registering Route:", rte.Path)
+		m.Handle(rte.Path+"/", http.StripPrefix(rte.Path, rte.Handler))
 	}
+	return http.Handler(m)
 }
 
 func (gw Gateway) Serve() error {
-	r := http.NewServeMux()
-	log.Println("Registering docs at", DOCS_ROUTE)
-	r.HandleFunc(DOCS_ROUTE, func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./pbf/docs/static.html")
-	})
-	for _, srv := range gw.srvs {
-		h, err := srv.Mux()
-		if err != nil {
-			return err
-		}
-		//t := strings.ToLower(strings.Split(fmt.Sprintf("%T", srv), ".")[1])
-		pre := fmt.Sprint("/", srv.Name(), "/", srv.Version())
-		log.Printf("Registering service %T at %s", srv, pre)
-		r.Handle(pre+"/", http.StripPrefix(pre, h))
-	}
-	log.Println("Starting Service Gateway at", gw.addr)
-	return http.ListenAndServe(gw.addr, r) //mux)
+	m := gw.Mux()
+	return http.ListenAndServe(gw.Address, m)
 }

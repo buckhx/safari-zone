@@ -2,7 +2,6 @@ package srv
 
 import (
 	"log"
-	"net/http"
 
 	"github.com/buckhx/safari-zone/srv/auth"
 	"github.com/mwitkow/go-grpc-middleware"
@@ -12,7 +11,6 @@ import (
 
 type Service interface {
 	Listen() error
-	Mux() (http.Handler, error)
 	Name() string
 	Version() string
 }

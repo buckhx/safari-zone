@@ -21,6 +21,7 @@ docker: build
 	docker build -f dev/registry.docker -t safari/registry .
 	docker build -f dev/pokedex.docker -t safari/pokedex .
 	docker build -f dev/warden.docker -t safari/warden .
+	docker build -f dev/gateway.docker -t safari/gateway .
 
 compose:
 	docker-compose -f dev/docker-compose.yml up
