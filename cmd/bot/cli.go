@@ -18,7 +18,7 @@ const (
 func main() {
 	safbot := safari.NewBot(safari.Opts{
 		RegistryAddress: regAddr,
-		SafariAddress:   safAddr,
+		WardenAddress:   safAddr,
 	})
 	go func() {
 		scanner := bufio.NewScanner(os.Stdin)

@@ -5,13 +5,14 @@ metadata:
   labels:
     app: registry
 spec:
+  type: NodePort
   ports:
-    - port: 50051
-      name: grpc
-      protocol: tcp
-    - port: 8080
-      name: http
-      protocol: tcp
+    - name: grpc
+      port: 50051
+      nodePort: 30051
+    - name: http
+      port: 8080
+      nodePort: 30080
   selector:
     app: registry
 ---

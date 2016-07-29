@@ -6,7 +6,7 @@ import (
 )
 
 type Opts struct {
-	SafariAddress   string
+	WardenAddress   string
 	RegistryAddress string
 	/*
 		Safari struct {
@@ -23,5 +23,5 @@ func (o Opts) DialRegistry() (*registry.Client, error) {
 }
 
 func (o Opts) DialSafari() (*warden.Client, error) {
-	return warden.Dial(o.SafariAddress)
+	return warden.Dial(o.WardenAddress)
 }

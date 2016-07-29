@@ -7,15 +7,15 @@ import (
 )
 
 const (
-	regAddr = "localhost:50051"
+	regAddr = "192.168.99.100:30051"
 	//pdxAddr = "localhost:50052"
-	wrdAddr = "localhost:50053"
+	wrdAddr = "192.168.99.100:30053"
 )
 
 func main() {
 	opts := safari.Opts{
 		RegistryAddress: regAddr,
-		SafariAddress:   wrdAddr,
+		WardenAddress:   wrdAddr,
 	}
 	c := safari.NewGUI(opts)
 	err := c.Run()
