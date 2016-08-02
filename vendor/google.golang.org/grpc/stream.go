@@ -37,6 +37,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"math"
 	"sync"
 	"time"
 
@@ -84,12 +85,9 @@ type ClientStream interface {
 	// Header returns the header metadata received from the server if there
 	// is any. It blocks if the metadata is not ready to read.
 	Header() (metadata.MD, error)
-	// Trailer returns the trailer metadata from the server. It must be called
-	// after stream.Recv() returns non-nil error (including io.EOF) for
-	// bi-directional streaming and server streaming or stream.CloseAndRecv()
-	// returns for client streaming in order to receive trailer metadata if
-	// present. Otherwise, it could returns an empty MD even though trailer
-	// is present.
+	// Trailer returns the trailer metadata from the server, if there is any.
+	// It must only be called after stream.CloseAndRecv has returned, or
+	// stream.Recv has returned a non-nil error (including io.EOF).
 	Trailer() metadata.MD
 	// CloseSend closes the send direction of the stream. It closes the stream
 	// when non-nil error is met.
@@ -149,7 +147,7 @@ func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 		t, put, err = cc.getTransport(ctx, gopts)
 		if err != nil {
 			// TODO(zhaoq): Probably revisit the error handling.
-			if _, ok := err.(rpcError); ok {
+			if _, ok := err.(*rpcError); ok {
 				return nil, err
 			}
 			if err == errConnClosing {
@@ -168,7 +166,7 @@ func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 				put()
 				put = nil
 			}
-			if _, ok := err.(transport.ConnectionError); ok {
+			if _, ok := err.(transport.ConnectionError); ok || err == transport.ErrStreamDrain {
 				if c.failFast {
 					cs.finish(err)
 					return nil, toRPCErr(err)
@@ -183,12 +181,24 @@ func NewClientStream(ctx context.Context, desc *StreamDesc, cc *ClientConn, meth
 	cs.t = t
 	cs.s = s
 	cs.p = &parser{r: s}
-	// Listen on ctx.Done() to detect cancellation when there is no pending
-	// I/O operations on this stream.
+	// Listen on ctx.Done() to detect cancellation and s.Done() to detect normal termination
+	// when there is no pending I/O operations on this stream.
 	go func() {
 		select {
 		case <-t.Error():
 			// Incur transport error, simply exit.
+		case <-s.Done():
+			// TODO: The trace of the RPC is terminated here when there is no pending
+			// I/O, which is probably not the optimal solution.
+			if s.StatusCode() == codes.OK {
+				cs.finish(nil)
+			} else {
+				cs.finish(Errorf(s.StatusCode(), "%s", s.StatusDesc()))
+			}
+			cs.closeTransportStream(nil)
+		case <-s.GoAway():
+			cs.finish(errConnDrain)
+			cs.closeTransportStream(errConnDrain)
 		case <-s.Context().Done():
 			err := s.Context().Err()
 			cs.finish(err)
@@ -251,7 +261,17 @@ func (cs *clientStream) SendMsg(m interface{}) (err error) {
 		if err != nil {
 			cs.finish(err)
 		}
-		if err == nil || err == io.EOF {
+		if err == nil {
+			return
+		}
+		if err == io.EOF {
+			// Specialize the process for server streaming. SendMesg is only called
+			// once when creating the stream object. io.EOF needs to be skipped when
+			// the rpc is early finished (before the stream object is created.).
+			// TODO: It is probably better to move this into the generated code.
+			if !cs.desc.ClientStreams && cs.desc.ServerStreams {
+				err = nil
+			}
 			return
 		}
 		if _, ok := err.(transport.ConnectionError); !ok {
@@ -272,7 +292,7 @@ func (cs *clientStream) SendMsg(m interface{}) (err error) {
 }
 
 func (cs *clientStream) RecvMsg(m interface{}) (err error) {
-	err = recv(cs.p, cs.codec, cs.s, cs.dc, m)
+	err = recv(cs.p, cs.codec, cs.s, cs.dc, m, math.MaxInt32)
 	defer func() {
 		// err != nil indicates the termination of the stream.
 		if err != nil {
@@ -291,7 +311,7 @@ func (cs *clientStream) RecvMsg(m interface{}) (err error) {
 			return
 		}
 		// Special handling for client streaming rpc.
-		err = recv(cs.p, cs.codec, cs.s, cs.dc, m)
+		err = recv(cs.p, cs.codec, cs.s, cs.dc, m, math.MaxInt32)
 		cs.closeTransportStream(err)
 		if err == nil {
 			return toRPCErr(errors.New("grpc: client streaming protocol violation: get <nil>, want <EOF>"))
@@ -326,7 +346,7 @@ func (cs *clientStream) CloseSend() (err error) {
 		}
 	}()
 	if err == nil || err == io.EOF {
-		return
+		return nil
 	}
 	if _, ok := err.(transport.ConnectionError); !ok {
 		cs.closeTransportStream(err)
@@ -392,6 +412,7 @@ type serverStream struct {
 	cp         Compressor
 	dc         Decompressor
 	cbuf       *bytes.Buffer
+	maxMsgSize int
 	statusCode codes.Code
 	statusDesc string
 	trInfo     *traceInfo
@@ -458,5 +479,5 @@ func (ss *serverStream) RecvMsg(m interface{}) (err error) {
 			ss.mu.Unlock()
 		}
 	}()
-	return recv(ss.p, ss.codec, ss.s, ss.dc, m)
+	return recv(ss.p, ss.codec, ss.s, ss.dc, m, ss.maxMsgSize)
 }

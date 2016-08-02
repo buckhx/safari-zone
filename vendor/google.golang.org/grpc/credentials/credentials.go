@@ -151,14 +151,16 @@ func (c *tlsCreds) ClientHandshake(addr string, rawConn net.Conn, timeout time.D
 			errChannel <- timeoutError{}
 		})
 	}
+	// use local cfg to avoid clobbering ServerName if using multiple endpoints
+	cfg := cloneTLSConfig(c.config)
 	if c.config.ServerName == "" {
 		colonPos := strings.LastIndex(addr, ":")
 		if colonPos == -1 {
 			colonPos = len(addr)
 		}
-		c.config.ServerName = addr[:colonPos]
+		cfg.ServerName = addr[:colonPos]
 	}
-	conn := tls.Client(rawConn, c.config)
+	conn := tls.Client(rawConn, cfg)
 	if timeout == 0 {
 		err = conn.Handshake()
 	} else {
@@ -187,7 +189,7 @@ func (c *tlsCreds) ServerHandshake(rawConn net.Conn) (net.Conn, AuthInfo, error)
 
 // NewTLS uses c to construct a TransportCredentials based on TLS.
 func NewTLS(c *tls.Config) TransportCredentials {
-	tc := &tlsCreds{c}
+	tc := &tlsCreds{cloneTLSConfig(c)}
 	tc.config.NextProtos = alpnProtoStr
 	return tc
 }

@@ -10,7 +10,7 @@ import (
 	"github.com/buckhx/safari-zone/registry"
 	"github.com/buckhx/safari-zone/srv"
 	"github.com/buckhx/safari-zone/srv/auth"
-	"github.com/gengo/grpc-gateway/runtime"
+	"github.com/grpc-ecosystem/grpc-gateway/runtime"
 	"golang.org/x/net/context"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"

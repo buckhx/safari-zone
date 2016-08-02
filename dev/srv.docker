@@ -1,7 +1,10 @@
-FROM alpine
+FROM buckhx/alpine-go-build
 
 MAINTAINER buckhx
 
 ENV SRV_HOME=/opt/safari-zone SRV_BIN=/opt/safari-zone/bin/safari-srv
-RUN mkdir -p $(dirname ${SRV_BIN}) && ln -s ${SRV_BIN} /usr/local/bin/safari-srv
-ADD dist/safari-srv ${SRV_BIN}
+RUN mkdir -p $(dirname ${SRV_BIN}) && ln -s ${SRV_BIN} /usr/local/bin/safari-srv && mkdir -p ${GOPATH}/src/github.com/buckhx/safari-zone
+WORKDIR ${GOPATH}/src/github.com/buckhx/safari-zone
+COPY . ./
+RUN make build && mv dist/safari-srv ${SRV_BIN} && rm -rf $GOPATH `go env GOROOT` && apk del .build
+WORKDIR ${SRV_HOME}

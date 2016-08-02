@@ -61,5 +61,8 @@ curl "http://localhost:8080/registry/v0/trainer/037c4d7b" -H "Authorization: Bea
 Deploy
 ------
 
+* go (gvm)
+* protoc
 * docker
 * minikube
+* xhyve

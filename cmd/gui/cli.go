@@ -1,25 +1,34 @@
 package main
 
 import (
-	"log"
+	"os"
 
 	"github.com/buckhx/safari-zone"
-)
-
-const (
-	regAddr = "192.168.99.100:30051"
-	//pdxAddr = "localhost:50052"
-	wrdAddr = "192.168.99.100:30053"
+	"github.com/urfave/cli"
 )
 
 func main() {
-	opts := safari.Opts{
-		RegistryAddress: regAddr,
-		WardenAddress:   wrdAddr,
+	app := cli.NewApp()
+	app.Name = "Safari Zone GUI"
+	//app.Version = Version
+	app.Action = func(c *cli.Context) error {
+		opts := safari.Opts{
+			RegistryAddress: c.String("registry"),
+			WardenAddress:   c.String("warden"),
+		}
+		return safari.NewGUI(opts).Run()
 	}
-	c := safari.NewGUI(opts)
-	err := c.Run()
-	if err != nil {
-		log.Fatal(err)
+	app.Flags = []cli.Flag{
+		cli.StringFlag{
+			Name:   "registry",
+			Value:  "localhost:50051",
+			EnvVar: "REGISTRY_ADDR",
+		},
+		cli.StringFlag{
+			Name:   "warden",
+			Value:  "localhost:50053",
+			EnvVar: "WARDEN_ADDR",
+		},
 	}
+	app.Run(os.Args)
 }

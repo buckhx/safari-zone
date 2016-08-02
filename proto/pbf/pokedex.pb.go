@@ -7,7 +7,7 @@ package pbf
 import proto "github.com/gogo/protobuf/proto"
 import fmt "fmt"
 import math "math"
-import _ "github.com/gengo/grpc-gateway/third_party/googleapis/google/api"
+import _ "github.com/grpc-ecosystem/grpc-gateway/third_party/googleapis/google/api"
 
 import strconv "strconv"
 
@@ -272,11 +272,12 @@ func valueToGoStringPokedex(v interface{}, typ string) string {
 	pv := reflect.Indirect(rv).Interface()
 	return fmt.Sprintf("func(v %v) *%v { return &v } ( %#v )", typ, typ, pv)
 }
-func extensionToGoStringPokedex(e map[int32]github_com_gogo_protobuf_proto.Extension) string {
+func extensionToGoStringPokedex(m github_com_gogo_protobuf_proto.Message) string {
+	e := github_com_gogo_protobuf_proto.GetUnsafeExtensionsMap(m)
 	if e == nil {
 		return "nil"
 	}
-	s := "map[int32]proto.Extension{"
+	s := "proto.NewUnsafeXXX_InternalExtensions(map[int32]proto.Extension{"
 	keys := make([]int, 0, len(e))
 	for k := range e {
 		keys = append(keys, int(k))
@@ -286,7 +287,7 @@ func extensionToGoStringPokedex(e map[int32]github_com_gogo_protobuf_proto.Exten
 	for _, k := range keys {
 		ss = append(ss, strconv.Itoa(k)+": "+e[int32(k)].GoString())
 	}
-	s += strings.Join(ss, ",") + "}"
+	s += strings.Join(ss, ",") + "})"
 	return s
 }
 
@@ -973,6 +974,8 @@ var (
 	ErrInvalidLengthPokedex = fmt.Errorf("proto: negative length found during unmarshaling")
 	ErrIntOverflowPokedex   = fmt.Errorf("proto: integer overflow")
 )
+
+func init() { proto.RegisterFile("pokedex.proto", fileDescriptorPokedex) }
 
 var fileDescriptorPokedex = []byte{
 	// 539 bytes of a gzipped FileDescriptorProto
