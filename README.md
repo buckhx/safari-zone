@@ -1,8 +1,10 @@
 # Safari Zone
 
-A set of services demonstrating GRPC integration. There are no guarantees on any of this working as this is meant to be a learning exercise. I'd say it's 70% of the way there.
+A set of services demonstrating GRPC integration. There are no guarantees on any of this working as this is meant to be a learning exercise. I'd say it's 70% of the way there. The cmd/ folder has the execs for the services and gui/bot.
 
 # Services
+
+Services implement an interface that allows for configuration and interceptors to be injected as well as an HTTP gateway to be set up.
 
 ## Registry
 
@@ -38,8 +40,6 @@ The gui has an embedded bot and exposes a UI using github.com/gizak/termui
 * JWT Authorization Interceptor
 * KVC Util
 * Auto-gen service stubs
-
-## Other Neat things
 
 ## Not Implemented
 
