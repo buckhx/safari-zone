@@ -43,6 +43,7 @@ The gui has an embedded bot and exposes a UI using github.com/gizak/termui
 
 ## Not Implemented
 
+* TLS auth
 * Logging, Recovery Interceptors
 * Api Proxy
 * Meaningful Tests or Documentation
