@@ -1,7 +1,6 @@
 # Safari Zone
-https://codeship.com/projects/e3539df0-3af6-0134-42c2-7e998b7e3afd/status?branch=master
 
-A set of services demonstrating GRPC integration
+A set of services demonstrating GRPC integration. There are no guarantees on any of this working, it is/was for more a learning experiment.
 
 # Services
 
